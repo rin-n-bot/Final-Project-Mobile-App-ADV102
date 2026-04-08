@@ -1,24 +1,27 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: '#FFF' }, // Keeps the "gap" white
+        animation: 'slide_from_right',
+        animationDuration: 200, // Speeds up the jump
+      }} 
+    >
+      {/* Explicitly define the Login screen */}
+      <Stack.Screen name="index" /> 
+      
+      {/* Explicitly define the screens folder */}
+      <Stack.Screen 
+        name="screens" 
+        options={{ 
+          animation: 'slide_from_right',
+          // This prevents the "flash" by keeping the previous screen in memory
+          freezeOnBlur: true, 
+        }} 
+      />
+    </Stack>
   );
 }

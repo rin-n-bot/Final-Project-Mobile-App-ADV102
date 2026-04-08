@@ -1,0 +1,111 @@
+import { StyleSheet, Platform, StatusBar } from 'react-native';
+
+export const chatStyles = StyleSheet.create({
+  mainWrapper: { 
+    flex: 1, 
+    backgroundColor: '#FFF' 
+  },
+  contentArea: {
+    flex: 1,
+    backgroundColor: '#FFF',
+  },
+  redHeader: { 
+    backgroundColor: '#AF0B01', 
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  safeAreaCustom: {
+    backgroundColor: '#AF0B01',
+  },
+  headerContent: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between',
+    paddingHorizontal: 15, 
+    height: 60, 
+  },
+  leftContainer: { width: 40 },
+  rightContainer: { width: 40 },
+  headerTitle: { 
+    fontSize: 18, 
+    fontWeight: '800', 
+    color: '#FFF',
+    textAlign: 'center',
+  },
+  iconButton: { padding: 5 },
+
+  listContainer: { padding: 15 },
+  chatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    borderColor: '#cfd4da',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#F9F9F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  chatInfo: { flex: 1 },
+  userName: { fontSize: 15, fontWeight: '700', color: '#222D31' },
+  lastMsg: { fontSize: 15, color: '#666', marginTop: 2 },
+
+  messageList: { paddingHorizontal: 15, paddingVertical: 20 },
+  bubble: { maxWidth: '80%', padding: 12, borderRadius: 15, marginBottom: 10 },
+  myBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#222D31',
+    borderBottomRightRadius: 2,
+  },
+  theirBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F0F0F0',
+    borderBottomLeftRadius: 2,
+  },
+  msgText: { fontSize: 15, lineHeight: 22 },
+
+  inputArea: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    /* FIX: marginBottom is 0 to prevent the "permanent lift" bug */
+    marginBottom: 0, 
+    /* Use paddingBottom to create space above the gesture bar */
+    paddingBottom: Platform.OS === 'android' ? 25 : 12, 
+  },
+  textInput: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 11,
+    marginRight: 10,
+    fontSize: 15,
+    color: '#222D31',
+    borderWidth: 1.5,
+    borderColor: '#cfd4da',
+    maxHeight: 120,
+    minHeight: 45,
+    textAlignVertical: 'center', 
+  },
+  sendBtn: {
+    backgroundColor: '#AF0B01',
+    width: 46,
+    height: 46,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 0, 
+  },
+});

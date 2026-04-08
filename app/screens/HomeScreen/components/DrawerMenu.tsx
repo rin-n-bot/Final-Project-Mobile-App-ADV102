@@ -1,0 +1,30 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, Animated, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { styles } from '../styles';
+
+interface DrawerMenuProps {
+  slideAnim: Animated.Value;
+  toggleDrawer: (open: boolean) => void;
+  handleLogout: () => void;
+}
+
+export const DrawerMenu = ({ slideAnim, toggleDrawer, handleLogout }: DrawerMenuProps) => (
+  <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
+    <View style={styles.drawerHeader}>
+      <Text style={styles.logoMini}>
+        <Text style={{ color: '#FFFFFF' }}>Cross</Text>
+        <Text style={{ color: '#ffffff' }}>Rent</Text>
+      </Text>
+      <TouchableOpacity onPress={() => toggleDrawer(false)}>
+        <Ionicons name="close-outline" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
+    <ScrollView style={styles.drawerItems}>
+      <TouchableOpacity style={styles.drawerItem}><Ionicons name="person-outline" size={22} color="#FFFFFF" /><Text style={styles.drawerItemText}>Profile</Text></TouchableOpacity>
+      <TouchableOpacity style={styles.drawerItem}><Ionicons name="list-outline" size={22} color="#FFFFFF" /><Text style={styles.drawerItemText}>My Listing</Text></TouchableOpacity>
+      <TouchableOpacity style={styles.drawerItem}><Ionicons name="settings-outline" size={22} color="#FFFFFF" /><Text style={styles.drawerItemText}>Settings</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.drawerItem, { marginTop: 20 }]} onPress={handleLogout}><Ionicons name="log-out-outline" size={22} color="#ffffff" /><Text style={[styles.drawerItemText, { color: '#ffffff' }]}>Logout</Text></TouchableOpacity>
+    </ScrollView>
+  </Animated.View>
+);
