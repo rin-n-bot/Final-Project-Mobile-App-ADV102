@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, SafeAreaView, View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles, scale } from '../styles'; // Ensure this path is correct
+import { styles, scale } from '../styles'; 
 import { db, auth } from '../../../../firebase';
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'expo-router';
@@ -13,19 +13,21 @@ interface ModalItemDetailsProps {
 
 export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDetailsProps) => {
   const router = useRouter();
+  const user = auth.currentUser;
+  const isOwner = user?.uid === selectedItem?.ownerId;
 
-  const handleMessageOwner = async () => {
-    const user = auth.currentUser;
-    // Note: Ensure your mapping uses 'ownerId' from Firestore
-    const ownerUid = selectedItem?.ownerId; 
-
+  const handleAction = async () => {
     if (!user) {
-      Alert.alert("Authentication", "Please log in to contact the owner.");
+      Alert.alert("Authentication", "Please log in to continue.");
       return;
     }
 
-    if (user.uid === ownerUid) {
-      Alert.alert("Selection", "This is your own listing.");
+    if (isOwner) {
+      setSelectedItem(null);
+      router.push({
+        pathname: '/screens/MyListingScreen/components/EditItem',
+        params: { itemId: selectedItem.id }
+      });
       return;
     }
 
@@ -36,18 +38,16 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       
       let chatId = null;
 
-      // Check if a chat already exists with this owner
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (data.participants && data.participants.includes(ownerUid)) {
+        if (data.participants && data.participants.includes(selectedItem?.ownerId)) {
           chatId = doc.id;
         }
       });
 
       if (!chatId) {
-        // Create new conversation
         const newDoc = await addDoc(chatRef, {
-          participants: [user.uid, ownerUid],
+          participants: [user.uid, selectedItem?.ownerId],
           senderEmail: user.email,
           lastMessage: "Start a conversation",
           updatedAt: serverTimestamp(),
@@ -56,7 +56,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         chatId = newDoc.id;
       }
 
-      // Close modal before navigating to prevent UI lag
       setSelectedItem(null);
       router.push({ 
         pathname: '/screens/ChatScreen', 
@@ -105,27 +104,41 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
             <Text style={styles.modalPrice}>{selectedItem?.price}</Text>
             
             <View style={styles.divider} />
+
+            {/* OWNER EMAIL SECTION */}
+            <Text style={styles.detailLabel}>Owner</Text>
+            <View style={styles.contactRow}>
+              <Ionicons name="mail-outline" size={scale(16)} color="#AF0B01" />
+              <Text style={styles.detailValueContact}>{selectedItem?.ownerEmail || "Not provided"}</Text>
+            </View>
             
+            {/* DESCRIPTION SECTION */}
             <Text style={styles.detailLabel}>Description</Text>
             <Text style={styles.detailValue}>{selectedItem?.description || "No description provided."}</Text>
             
+            {/* LOCATION SECTION */}
             <Text style={styles.detailLabel}>Location</Text>
             <View style={styles.contactRow}>
               <Ionicons name="location-outline" size={scale(16)} color="#AF0B01" />
               <Text style={styles.detailValueContact}>{selectedItem?.location}</Text>
             </View>
+
+            {/* POSTED ON SECTION */}
+            <Text style={styles.detailLabel}>Posted On</Text>
+            <View style={styles.contactRow}>
+              <Ionicons name="calendar-outline" size={scale(16)} color="#AF0B01" />
+              <Text style={styles.detailValueContact}>{selectedItem?.timestamp || selectedItem?.createdAt || "Recently"}</Text>
+            </View>
           </View>
         </ScrollView>
 
-        {/* FOOTER ACTIONS */}
+        {/* FOOTER ACTIONS - Save Button Removed, Message/Edit Centered */}
         <View style={styles.modalFooter}>
-          <TouchableOpacity style={styles.saveBtn}>
-            <Ionicons name="bookmark-outline" size={scale(24)} color="#222D31" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.messageBtn} onPress={handleMessageOwner}>
-            <Ionicons name="chatbubble-ellipses" size={scale(20)} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <Text style={styles.messageBtnText}>Message Owner</Text>
+          <TouchableOpacity style={styles.messageBtn} onPress={handleAction}>
+            {!isOwner && <Ionicons name="chatbubble-ellipses" size={scale(20)} color="#FFFFFF" style={{ marginRight: 8 }} />}
+            <Text style={styles.messageBtnText}>
+              {isOwner ? "Edit Item" : "Message Owner"}
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

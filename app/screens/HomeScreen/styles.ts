@@ -184,7 +184,7 @@ export const styles = StyleSheet.create({
     marginBottom: scale(15), 
     borderRadius: scale(12), 
     backgroundColor: '#FFF', 
-    borderWidth: 1, 
+    borderWidth: 1.5, 
     borderColor: '#cfd4da', 
     overflow: 'hidden' 
   },
@@ -265,51 +265,64 @@ export const styles = StyleSheet.create({
     marginBottom: scale(10) 
   },
 
-  // --- BOTTOM TAB NAVIGATION ---
-  bottomNav: { 
-    position: 'absolute', 
-    bottom: 0, width: '100%', 
-    height: scale(75), 
-    backgroundColor: '#222D31', 
-    flexDirection: 'row', 
-    justifyContent: 'space-around', 
-    alignItems: 'center', 
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10 
-  },
-  navItem: { 
-    alignItems: 'center', 
-    justifyContent: 'center' 
-  },
-  navLabel: { 
-    fontSize: scale(10), 
-    fontWeight: '800', 
-    color: 'rgba(255,255,255,0.4)', 
-    marginTop: 4 
-  },
-  addBtnContainer: { 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginTop: scale(-25) 
-  },
-  addBtnCircle: { 
-    width: scale(54), 
-    height: scale(54), 
-    borderRadius: scale(27), 
-    backgroundColor: '#AF0B01', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    elevation: 5, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.3, 
-    shadowRadius: 3 
-  },
-  addLabel: { 
-    fontSize: scale(10), 
-    fontWeight: '800', 
-    color: '#FFFFFF', 
-    marginTop: 4 
-  },
+// --- BOTTOM TAB NAVIGATION ---
+bottomNav: { 
+  position: 'absolute', 
+  bottom: 0, 
+  width: '100%', 
+  height: scale(70), // Reduced slightly for better proportion
+  backgroundColor: '#222D31', 
+  flexDirection: 'row', 
+  // IMPORTANT: Remove justifyContent: 'space-around'. 
+  // We use flex: 1 on children to force 5 equal columns.
+  alignItems: 'center', 
+  paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+  zIndex: 10,
+  elevation: 10,
+  overflow: 'visible', // Allows the button to pop out the top
+},
+navItemContainer: { 
+  flex: 1, // Every item takes up exactly 20% of screen width
+  alignItems: 'center', 
+  justifyContent: 'center',
+},
+navLabel: { 
+  fontSize: scale(10), 
+  fontWeight: '800', 
+  color: 'rgba(255,255,255,0.4)', 
+  marginTop: 4,
+},
+addBtnContainer: { 
+  flex: 1, // The middle column (20%)
+  alignItems: 'center', 
+  justifyContent: 'center',
+  position: 'relative',
+  overflow: 'visible',
+},
+addBtnCircle: { 
+  width: scale(54), 
+  height: scale(54), 
+  borderRadius: scale(27), 
+  backgroundColor: '#AF0B01', 
+  justifyContent: 'center', 
+  alignItems: 'center', 
+  // THE FIX FOR "NOT BUDGING": 
+  position: 'absolute',
+  top: scale(-27), // Moves exactly half the button above the bar
+  elevation: 5, 
+  shadowColor: '#000', 
+  shadowOffset: { width: 0, height: 2 }, 
+  shadowOpacity: 0.3, 
+  shadowRadius: 3 
+},
+addLabel: { 
+  fontSize: scale(10), 
+  fontWeight: '800', 
+  color: '#FFFFFF', 
+  // Offset the label text so it sits inside the bar under the floating circle
+  marginTop: scale(38), 
+  textAlign: 'center'
+},
 
   // --- ITEM MODAL DETAILS ---
   modalContainer: { 

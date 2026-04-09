@@ -23,14 +23,16 @@ export const chatStyles = StyleSheet.create({
     paddingHorizontal: 15, 
     height: 60, 
   },
-  leftContainer: { width: 40 },
-  rightContainer: { width: 40 },
+  leftContainer: { width: 60 },
+  rightContainer: { width: 60 },
   headerTitle: { 
     fontSize: 18, 
     fontWeight: '800', 
     color: '#FFF',
     textAlign: 'center',
+    width: '65%',
   },
+  
   iconButton: { padding: 5 },
 
   listContainer: { padding: 15 },
@@ -66,8 +68,10 @@ export const chatStyles = StyleSheet.create({
   },
   theirBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#ffffff',
     borderBottomLeftRadius: 2,
+    borderWidth: 1.5,
+    borderColor: '#cfd4da',
   },
   msgText: { fontSize: 15, lineHeight: 22 },
 
@@ -108,4 +112,21 @@ export const chatStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 0, 
   },
+  fab: {
+    position: 'absolute',
+    right: 25,
+    bottom: 95, 
+    backgroundColor: '#AF0B01',
+    width: 55,
+    height: 55,
+    borderRadius: 32.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    zIndex: 9999,
+  }
 });

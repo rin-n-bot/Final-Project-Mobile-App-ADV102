@@ -9,31 +9,32 @@ const NavItem = ({ icon, label, path }: { icon: any, label: string, path: string
   const router = useRouter();
   const pathname = usePathname();
 
-  // Logic: Prevent redundant navigation to the same screen
   const navigateTo = () => {
     if (pathname !== path) {
       router.replace(path as any);
     }
   };
   
-  // Logic: Highlight if the current path matches
   const active = pathname === path;
 
   return (
-    <TouchableOpacity 
-      onPress={navigateTo}
-      activeOpacity={0.7}
-      style={{ alignItems: 'center', justifyContent: 'center' }}
-    >
-      <Ionicons 
-        name={icon} 
-        size={scale(24)} 
-        color={active ? "#AF0B01" : "#cfd4da"} 
-      />
-      <Text style={[styles.navLabel, active && { color: '#AF0B01' }]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
+    // Wrap the touchable in a View with flex: 1 to force equal gaps
+    <View style={styles.navItemContainer}> 
+      <TouchableOpacity 
+        onPress={navigateTo}
+        activeOpacity={0.7}
+        style={{ alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Ionicons 
+          name={icon} 
+          size={scale(24)} 
+          color={active ? "#AF0B01" : "#cfd4da"} 
+        />
+        <Text style={[styles.navLabel, active && { color: '#AF0B01' }]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -47,16 +48,19 @@ export const BottomNav = () => {
       
       <NavItem icon="chatbubbles-outline" label="Chats" path="/screens/ChatScreen" />
 
-      {/* Center Add Button - Navigates to AddListingScreen */}
-      <TouchableOpacity 
-        style={styles.addBtnContainer}
-        onPress={() => router.push('/screens/AddListingScreen')}
-      >
-        <View style={styles.addBtnCircle}>
-          <Ionicons name="add" size={scale(32)} color="#FFFFFF" />
-        </View>
-        <Text style={styles.addLabel}>Add</Text>
-      </TouchableOpacity>
+      {/* Middle Slot */}
+      <View style={styles.addBtnContainer}>
+        <TouchableOpacity 
+          onPress={() => router.push('/screens/AddListingScreen')}
+          activeOpacity={0.8}
+          style={{ alignItems: 'center' }}
+        >
+          <View style={styles.addBtnCircle}>
+            <Ionicons name="add" size={scale(32)} color="#FFFFFF" />
+          </View>
+          <Text style={styles.addLabel}>Add</Text>
+        </TouchableOpacity>
+      </View>
 
       <NavItem icon="time-outline" label="History" path="/screens/History" />
       

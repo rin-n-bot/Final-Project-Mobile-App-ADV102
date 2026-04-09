@@ -24,7 +24,7 @@ const s = StyleSheet.create({
   postBtnText: { 
     color: '#FFF', 
     fontWeight: '800', 
-    fontSize: 16 
+    fontSize: 15 
   },
   iconButton: { 
     padding: 5 
