@@ -1,10 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image'; // Matching ChatScreen import
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Animated,
+  InteractionManager,
   RefreshControl,
   SafeAreaView,
   ScrollView,
@@ -14,21 +17,17 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  InteractionManager,
-  ActivityIndicator,
 } from 'react-native';
-import { Image } from 'expo-image'; // Matching ChatScreen import
 
-import { db, auth } from '../../../firebase';
-import { collection, query, onSnapshot, orderBy, doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { auth, db } from '../../../firebase';
 
-import { BottomNav } from './components/BottomNav';
-import { CategoryCard } from './components/CategoryCard';
-import { DrawerMenu } from './components/DrawerMenu';
-import { ListingCard } from './components/ListingCard';
-import { ModalItemDetails } from './components/ModalItemDetails';
+import { ModalItemDetails } from '../../modal/ModalItemDetails';
+import { DrawerMenu } from '../../../components/ui/DrawerMenu';
+import { CategoryCard } from '../home/components/CategoryCard';
+import { ListingCard } from '../home/components/ListingCard';
 
-import { GREETING_QUOTES } from './constants/quotes';
+import { GREETING_QUOTES } from '../../../constants/quotes';
 import { DRAWER_WIDTH, scale, styles } from './styles';
 
 export default function HomeScreen() {
@@ -145,7 +144,7 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
         onPress: async () => {
           try {
             await signOut(auth);
-            router.replace('/screens/LoginScreen');
+            router.replace('/(auth)/LoginScreen');
           } catch (error: any) {
             alert(error.message);
           }
@@ -312,7 +311,7 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
             <Text style={styles.endOfListText}>No more listings.</Text>
           )}
         </ScrollView>
-        <BottomNav />
+
       </SafeAreaView>
     </View>
   );

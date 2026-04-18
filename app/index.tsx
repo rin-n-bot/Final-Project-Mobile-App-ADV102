@@ -10,13 +10,13 @@ export default function Page() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.emailVerified) {
-        router.replace('/screens/HomeScreen');
+        router.replace('/(tabs)/home');
       } else {
-        router.replace('/screens/LoginScreen');
+        router.replace('/(auth)/LoginScreen');
       }
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   return (

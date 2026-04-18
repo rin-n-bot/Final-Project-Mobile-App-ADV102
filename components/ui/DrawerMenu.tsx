@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Animated, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router'; // GUIDE: Import useRouter for navigation
-import { styles } from '../styles';
+import React from 'react';
+import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { styles } from '../../app/(tabs)/home/styles'; // GUIDE: Import styles from the correct path
 
 interface DrawerMenuProps {
   slideAnim: Animated.Value;

@@ -33,8 +33,8 @@ export const styles = StyleSheet.create({
     width: DRAWER_WIDTH, 
     backgroundColor: '#222D31', 
     zIndex: 100, 
-    elevation: 5, 
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 20 
+    elevation: 100, 
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 20
   },
   drawerHeader: { 
     flexDirection: 'row', 

@@ -45,7 +45,8 @@
         {
           "photosPermission": "Allow CrossRent to access your photos to upload item images."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,

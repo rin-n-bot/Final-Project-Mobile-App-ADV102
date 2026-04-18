@@ -86,7 +86,7 @@ export const chatStyles = StyleSheet.create({
     /* FIX: marginBottom is 0 to prevent the "permanent lift" bug */
     marginBottom: 0, 
     /* Use paddingBottom to create space above the gesture bar */
-    paddingBottom: Platform.OS === 'android' ? 25 : 12, 
+    paddingBottom: 4,
   },
   textInput: {
     flex: 1,

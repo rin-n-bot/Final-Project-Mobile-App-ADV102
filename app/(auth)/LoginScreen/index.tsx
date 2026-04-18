@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
-  Platform, 
-  SafeAreaView, 
-  TouchableWithoutFeedback, 
+import { useRouter } from 'expo-router';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import {
+  Image,
   Keyboard,
-  Image 
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from 'react-native';
 import { auth, db } from '../../../firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { useRouter } from 'expo-router';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-import { styles } from './styles';
 import { AuthToggle } from './components/AuthToggle';
 import { InputField } from './components/InputField';
+import { styles } from './styles';
 
 export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -60,7 +60,7 @@ export default function LoginScreen() {
             lastLogin: serverTimestamp(),
           }, { merge: true });
 
-          router.replace('/screens/HomeScreen');
+          router.replace('/(tabs)/home');
         } else {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           
@@ -90,7 +90,7 @@ export default function LoginScreen() {
         showSub.remove();
         hideSub.remove();
     };
-  }, []);
+  }, [Keyboard]);
 
   return (
     <SafeAreaView style={styles.container}>

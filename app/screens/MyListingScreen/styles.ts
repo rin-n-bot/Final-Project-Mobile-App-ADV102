@@ -1,5 +1,5 @@
-import { StyleSheet, Dimensions } from 'react-native';
-import { COLORS, SPACING, LAYOUT, scale } from '../../styles/global'; // Adjust path as needed
+import { StyleSheet } from 'react-native';
+import { COLORS, LAYOUT, scale, SPACING } from '../../../styles/global'; // Adjust path as needed
 
 export const listingStyles = StyleSheet.create({
   container: {
@@ -32,17 +32,27 @@ export const listingStyles = StyleSheet.create({
   card: {
     backgroundColor: '#FFF',
     borderRadius: LAYOUT.borderRadius,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md, // Match Transaction spacing
     flexDirection: 'row',
-    padding: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    // Shadow for iOS/Android
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    padding: scale(15), // Matching scale(15) from Transaction card
+    borderWidth: 1.5,
+    borderColor: '#cfd4da', // The specific border color you wanted
+    // Simplified shadows to match the cleaner transaction look
+    elevation: 0, 
+    shadowColor: 'transparent', 
+  },
+  // --- ADD THESE TO MATCH TRANSACTION DESIGN ---
+  statusBadge: {
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(2),
+    borderRadius: scale(4),
+    alignSelf: 'flex-start', // Important: makes badge only as wide as text
+    marginTop: scale(6),
+  },
+  statusText: {
+    fontSize: scale(10),
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   itemImage: {
     width: scale(80),

@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, ScrollView, 
-  SafeAreaView, Alert, KeyboardAvoidingView, Platform, 
-  StatusBar, Image, ActivityIndicator 
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { db, auth } from '../../../../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import s from '../../AddListingScreen/styles'; // Re-using existing styles
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView, Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    Text, TextInput, TouchableOpacity,
+    View
+} from 'react-native';
+import { db } from '../../../../firebase';
+import s from '../../../add/styles'; // Re-using existing styles
 
 export default function EditItemScreen() {
   const router = useRouter();
@@ -18,6 +24,7 @@ export default function EditItemScreen() {
   // FORM STATE
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [rentalPeriod, setRentalPeriod] = useState('Day'); // New state
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState(''); 
@@ -27,6 +34,7 @@ export default function EditItemScreen() {
 
   const categories = ['Laptop', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
   const statusOptions = ['Available', 'Reserved', 'Rented'];
+  const durationOptions = ['Hour', 'Day', 'Week', 'Month']; // Options for chips
 
   // FETCH EXISTING DATA
   useEffect(() => {
@@ -38,8 +46,8 @@ export default function EditItemScreen() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setName(data.name);
-          // Remove ₱ symbol if present for the input field
           setPrice(data.price.replace('₱', ''));
+          setRentalPeriod(data.rentalPeriod || 'Day'); // Fetch duration
           setDescription(data.description);
           setLocation(data.location);
           setCategory(data.category);
@@ -84,6 +92,7 @@ export default function EditItemScreen() {
       await updateDoc(docRef, {
         name: name.trim(),
         price: `₱${price.trim()}`,
+        rentalPeriod: rentalPeriod, // Update duration
         description: description.trim(),
         category: category, 
         location: location.trim(),
@@ -146,6 +155,20 @@ export default function EditItemScreen() {
 
           <Text style={s.label}>Price (₱)</Text>
           <TextInput style={s.input} keyboardType="numeric" value={price} onChangeText={setPrice} />
+
+          {/* ADDED RENTAL DURATION CHIPS */}
+          <Text style={s.label}>Rental Duration</Text>
+          <View style={s.chipGrid}>
+            {durationOptions.map((dur) => (
+              <TouchableOpacity 
+                key={dur} 
+                onPress={() => setRentalPeriod(dur)}
+                style={[s.chip, { width: '22%' }, rentalPeriod === dur ? s.chipActive : s.chipInactive]}
+              >
+                <Text style={[s.chipText, rentalPeriod === dur && s.chipTextActive]}>{dur}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text style={s.label}>Location</Text>
           <TextInput style={s.input} value={location} onChangeText={setLocation} />

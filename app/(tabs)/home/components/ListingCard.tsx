@@ -10,7 +10,7 @@ interface ListingCardProps {
 export const ListingCard = ({ item, onPress }: ListingCardProps) => (
   <TouchableOpacity style={styles.card} activeOpacity={0.7} onPress={onPress}>
     <View style={styles.imageContainer}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} resizeMode="cover" />
+      <Image source={{ uri: item.imageUrl || item.image }} style={styles.cardImage} resizeMode="cover" />
     </View>
     <View style={styles.cardContent}>
       <View style={styles.cardHeader}>
@@ -21,8 +21,15 @@ export const ListingCard = ({ item, onPress }: ListingCardProps) => (
           </Text>
         </View>
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-      <Text style={styles.cardPricePlain}>{item.price}</Text>
+      <Text style={styles.cardTitle} numberOfLines={1}>{item.name || item.title}</Text>
+      
+      {/* DYNAMIC PRICE AND DURATION */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+        <Text style={styles.cardPricePlain}>{item.price}</Text>
+        {item.rentalPeriod && (
+          <Text style={[styles.cardPricePlain, { fontSize: 12 }]}> / {item.rentalPeriod.toLowerCase()}</Text>
+        )}
+      </View>
     </View>
   </TouchableOpacity>
 );

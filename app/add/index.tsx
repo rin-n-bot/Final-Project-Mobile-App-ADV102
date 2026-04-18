@@ -1,30 +1,31 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  SafeAreaView, 
-  Alert, 
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  Image
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { db, auth } from '../../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { auth, db } from '../../firebase';
 import s from './styles';
 
-export default function AddListingScreen() {
+export default function AddScreen() {
   const router = useRouter();
 
   // FORM STATE
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [rentalPeriod, setRentalPeriod] = useState('Day'); // Default duration
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState(''); 
@@ -33,6 +34,7 @@ export default function AddListingScreen() {
 
   const categories = ['Laptop', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
   const statusOptions = ['Available', 'Reserved', 'Rented'];
+  const durationOptions = ['Hour', 'Day', 'Week', 'Month'];
 
   // IMAGE PICKER LOGIC
   const pickImage = async () => {
@@ -56,10 +58,8 @@ export default function AddListingScreen() {
     }
   };
 
-  // FIXED SLUG LOGIC: This matches your Firestore Category Document IDs
   const getSlug = (name: string) => {
     const raw = name.toLowerCase().trim();
-    // Dictionary to handle singular/plural mismatches manually
     const mapping: { [key: string]: string } = {
       'laptop': 'laptops',
       'book': 'books',
@@ -87,9 +87,10 @@ export default function AddListingScreen() {
       await addDoc(collection(db, 'items'), {
         name: name.trim(),
         price: `₱${price.trim()}`,
+        rentalPeriod: rentalPeriod, 
         description: description.trim(),
         category: category, 
-        categoryId: getSlug(category), // Now results in "laptops"
+        categoryId: getSlug(category),
         location: location.trim(),
         status: status,
         ownerEmail: auth.currentUser?.email,
@@ -99,7 +100,7 @@ export default function AddListingScreen() {
       });
 
       Alert.alert("Success", "Item posted successfully!");
-      router.replace('/screens/HomeScreen');
+      router.push('/(tabs)/home');
     } catch (e) {
       console.error(e);
       Alert.alert("Error", "Failed to save listing.");
@@ -161,6 +162,19 @@ export default function AddListingScreen() {
             value={price} 
             onChangeText={setPrice} 
           />
+
+          <Text style={s.label}>Rental Duration</Text>
+          <View style={s.chipGrid}>
+            {durationOptions.map((dur) => (
+              <TouchableOpacity 
+                key={dur} 
+                onPress={() => setRentalPeriod(dur)}
+                style={[s.chip, { width: '22%' }, rentalPeriod === dur ? s.chipActive : s.chipInactive]}
+              >
+                <Text style={[s.chipText, rentalPeriod === dur && s.chipTextActive]}>{dur}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <Text style={s.label}>Location</Text>
           <TextInput 
