@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, LAYOUT, scale, SPACING } from '../../../styles/global'; // Adjust path as needed
+import { COLORS, LAYOUT, scale, SPACING } from '../../styles/global'; // Adjust path as needed
 
 export const listingStyles = StyleSheet.create({
   container: {
@@ -28,6 +28,7 @@ export const listingStyles = StyleSheet.create({
   listContainer: {
     padding: LAYOUT.horizontalPadding,
     paddingBottom: scale(100),
+    marginTop: scale(-10),
   },
   card: {
     backgroundColor: '#FFF',

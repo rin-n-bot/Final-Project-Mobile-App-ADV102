@@ -14,8 +14,8 @@ import {
     Text, TextInput, TouchableOpacity,
     View
 } from 'react-native';
-import { db } from '../../../../firebase';
-import s from '../../../add/styles'; // Re-using existing styles
+import { db } from '../../../firebase';
+import s from '../../add-listing/styles'; // Re-using existing styles
 
 export default function EditItemScreen() {
   const router = useRouter();

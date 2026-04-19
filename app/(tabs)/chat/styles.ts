@@ -1,38 +1,40 @@
+// app/(tabs)/chat/styles.ts
 import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 export const chatStyles = StyleSheet.create({
-  mainWrapper: { 
-    flex: 1, 
-    backgroundColor: '#FFF' 
+  mainWrapper: {
+    flex: 1,
+    backgroundColor: '#FFF',
   },
   contentArea: {
     flex: 1,
     backgroundColor: '#FFF',
   },
-  redHeader: { 
-    backgroundColor: '#AF0B01', 
+  redHeader: {
+    backgroundColor: '#AF0B01',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    // GUIDE: Red line (divider) removed — no borderBottom or extra height here
   },
   safeAreaCustom: {
     backgroundColor: '#AF0B01',
   },
-  headerContent: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 15, 
-    height: 60, 
+    paddingHorizontal: 15,
+    height: 60,
   },
   leftContainer: { width: 60 },
   rightContainer: { width: 60 },
-  headerTitle: { 
-    fontSize: 18, 
-    fontWeight: '800', 
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
     color: '#FFF',
     textAlign: 'center',
     width: '65%',
   },
-  
+
   iconButton: { padding: 5 },
 
   listContainer: { padding: 15 },
@@ -42,6 +44,7 @@ export const chatStyles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#FFF',
     borderRadius: 12,
+    marginTop: -5,
     marginBottom: 10,
     borderWidth: 1.5,
     borderColor: '#cfd4da',
@@ -59,7 +62,7 @@ export const chatStyles = StyleSheet.create({
   userName: { fontSize: 15, fontWeight: '700', color: '#222D31' },
   lastMsg: { fontSize: 15, color: '#666', marginTop: 2 },
 
-  messageList: { paddingHorizontal: 15, paddingVertical: 20 },
+  messageList: { paddingHorizontal: 15, paddingVertical: 20, marginTop: 0 },
   bubble: { maxWidth: '80%', padding: 12, borderRadius: 15, marginBottom: 10 },
   myBubble: {
     alignSelf: 'flex-end',
@@ -83,9 +86,7 @@ export const chatStyles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
-    /* FIX: marginBottom is 0 to prevent the "permanent lift" bug */
-    marginBottom: 0, 
-    /* Use paddingBottom to create space above the gesture bar */
+    marginBottom: 0,
     paddingBottom: 4,
   },
   textInput: {
@@ -101,7 +102,7 @@ export const chatStyles = StyleSheet.create({
     borderColor: '#cfd4da',
     maxHeight: 120,
     minHeight: 45,
-    textAlignVertical: 'center', 
+    textAlignVertical: 'center',
   },
   sendBtn: {
     backgroundColor: '#AF0B01',
@@ -110,12 +111,12 @@ export const chatStyles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 0, 
+    marginBottom: 0,
   },
   fab: {
     position: 'absolute',
     right: 25,
-    bottom: 95, 
+    bottom: 95,
     backgroundColor: '#AF0B01',
     width: 55,
     height: 55,
@@ -128,5 +129,5 @@ export const chatStyles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     zIndex: 9999,
-  }
+  },
 });

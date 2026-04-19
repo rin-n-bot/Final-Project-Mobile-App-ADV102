@@ -14,12 +14,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', 
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
   },
-  overlay: { 
-    position: 'absolute', 
-    top: 0, left: 0, right: 0, bottom: 0, 
-    backgroundColor: 'rgba(0,0,0,0.5)', 
-    zIndex: 99 
-  },
+  // GUIDE: ONLY CHANGE - overlay removed (no longer needed in HomeScreen)
   divider: { 
     height: 1, 
     backgroundColor: '#F0F0F0', 
@@ -27,6 +22,15 @@ export const styles = StyleSheet.create({
   },
 
   // --- DRAWER NAVIGATION ---
+  backdrop: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  zIndex: 998,
+},
   drawer: { 
     position: 'absolute', 
     left: 0, top: 0, bottom: 0, 
@@ -265,83 +269,24 @@ export const styles = StyleSheet.create({
     marginBottom: scale(10) 
   },
 
-// --- BOTTOM TAB NAVIGATION ---
-bottomNav: { 
-  position: 'absolute', 
-  bottom: 0, 
-  width: '100%', 
-  height: scale(70), // Reduced slightly for better proportion
-  backgroundColor: '#222D31', 
-  flexDirection: 'row', 
-  // IMPORTANT: Remove justifyContent: 'space-around'. 
-  // We use flex: 1 on children to force 5 equal columns.
-  alignItems: 'center', 
-  paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-  zIndex: 10,
-  elevation: 10,
-  overflow: 'visible', // Allows the button to pop out the top
-},
-navItemContainer: { 
-  flex: 1, // Every item takes up exactly 20% of screen width
-  alignItems: 'center', 
-  justifyContent: 'center',
-},
-navLabel: { 
-  fontSize: scale(10), 
-  fontWeight: '800', 
-  color: 'rgba(255,255,255,0.4)', 
-  marginTop: 4,
-},
-addBtnContainer: { 
-  flex: 1, // The middle column (20%)
-  alignItems: 'center', 
-  justifyContent: 'center',
-  position: 'relative',
-  overflow: 'visible',
-},
-addBtnCircle: { 
-  width: scale(54), 
-  height: scale(54), 
-  borderRadius: scale(27), 
-  backgroundColor: '#AF0B01', 
-  justifyContent: 'center', 
-  alignItems: 'center', 
-  // THE FIX FOR "NOT BUDGING": 
-  position: 'absolute',
-  top: scale(-27), // Moves exactly half the button above the bar
-  elevation: 5, 
-  shadowColor: '#000', 
-  shadowOffset: { width: 0, height: 2 }, 
-  shadowOpacity: 0.3, 
-  shadowRadius: 3 
-},
-addLabel: { 
-  fontSize: scale(10), 
-  fontWeight: '800', 
-  color: '#FFFFFF', 
-  // Offset the label text so it sits inside the bar under the floating circle
-  marginTop: scale(38), 
-  textAlign: 'center'
-},
-
   // --- ITEM MODAL DETAILS ---
   modalContainer: { 
     flex: 1, 
     backgroundColor: '#FFFFFF' 
   },
-  modalHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    height: scale(60), 
-    backgroundColor: '#AF0B01' 
-  },
+modalHeader: { 
+  flexDirection: 'row', 
+  alignItems: 'center', 
+  paddingHorizontal: HORIZONTAL_PADDING, 
+  height: scale(60),
+  backgroundColor: '#FFFFFF' // same as Transactions
+},
   modalHeaderTitle: { 
-    fontSize: scale(16), 
-    fontWeight: '800', 
-    color: '#FFFFFF' 
-  },
+  fontSize: scale(19), 
+  fontWeight: '800', 
+  color: '#222D31', 
+  letterSpacing: -1 
+},
   modalCloseBtn: { 
     padding: scale(5) 
   },
@@ -410,16 +355,6 @@ addLabel: {
     flexDirection: 'row', 
     alignItems: 'center', 
     paddingBottom: Platform.OS === 'ios' ? 30 : 20 
-  },
-  saveBtn: { 
-    width: scale(50), 
-    height: scale(50), 
-    borderRadius: 12, 
-    borderWidth: 1.5, 
-    borderColor: '#cfd4da', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginRight: scale(12) 
   },
   messageBtn: { 
     flex: 1, 

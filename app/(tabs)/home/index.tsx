@@ -1,11 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image'; // Matching ChatScreen import
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { signOut } from 'firebase/auth';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   InteractionManager,
   RefreshControl,
@@ -15,75 +13,64 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
-
-import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';
-
 import { ModalItemDetails } from '../../modal/ModalItemDetails';
-import { DrawerMenu } from '../../../components/ui/DrawerMenu';
 import { CategoryCard } from '../home/components/CategoryCard';
 import { ListingCard } from '../home/components/ListingCard';
-
 import { GREETING_QUOTES } from '../../../constants/quotes';
-import { DRAWER_WIDTH, scale, styles } from './styles';
+import { scale, styles } from './styles';
+import { useDrawer } from '../../../context/DrawerContext';
 
 export default function HomeScreen() {
+  const { toggleDrawer, isDrawerOpen } = useDrawer();
   const [activeCategory, setActiveCategory] = useState('All');
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true); 
-  const [listings, setListings] = useState<any[]>([]); 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [listings, setListings] = useState<any[]>([]);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showFullMeaning, setShowFullMeaning] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
 
-  // Profile data state
-const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: string | null} | null>(null);
-
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const arrowRotate = useRef(new Animated.Value(0)).current;
 
   const router = useRouter();
   const user = auth.currentUser;
 
-  // Fetch Profile Data (Same logic as ChatScreen recipient fetching)
+  // LIVE PROFILE LISTENER — replaces old getDoc fetchUser
   useEffect(() => {
     if (!user) return;
-    const fetchUser = async () => {
-      try {
-        const uSnap = await getDoc(doc(db, 'users', user.uid));
-        if (uSnap.exists()) {
-          setUserProfile({
-            photoURL: uSnap.data().photoURL || null,
-            email: uSnap.data().email || user.email
-          });
-        } else {
-          setUserProfile({ photoURL: user.photoURL || null, email: user.email });
-        }
-      } catch (e) {
-        console.error("Error fetching user profile:", e);
+    setUserEmail(user.email || '');
+
+    const unsub = onSnapshot(doc(db, 'profiles', user.uid), (snap) => {
+      if (snap.exists()) {
+        setAvatarUrl(snap.data().profilePicUrl || '');
       }
-    };
-    fetchUser();
+    });
+    return unsub;
   }, [user]);
 
   const formatCategoryName = (id: string) => {
     if (id === 'All') return 'All';
-    return id.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return id
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'categories'), (snapshot) => {
-      const fetchedCats = snapshot.docs.map(doc => ({
+      const fetchedCats = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        displayName: formatCategoryName(doc.id) 
+        displayName: formatCategoryName(doc.id),
       }));
       setDbCategories([{ id: 'All', displayName: 'All', icon: 'grid-outline' }, ...fetchedCats]);
     });
@@ -93,26 +80,30 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
       const q = query(collection(db, 'items'), orderBy('createdAt', 'desc'));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const items = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            name: data.name || "Untitled Item",
-            title: data.name || "Untitled Item", 
-            category: data.category || "",
-            categoryId: data.categoryId || "",
-            image: data.imageUrl,
-            timestamp: data.createdAt?.toDate().toLocaleDateString() || 'Just now'
-          };
-        });
-        setListings(items);
-        setIsLoading(false);
-      }, (error) => {
-        console.error("Firestore Error:", error);
-        setIsLoading(false);
-      });
+      const unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const items = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              ...data,
+              name: data.name || 'Untitled Item',
+              title: data.name || 'Untitled Item',
+              category: data.category || '',
+              categoryId: data.categoryId || '',
+              image: data.imageUrl,
+              timestamp: data.createdAt?.toDate().toLocaleDateString() || 'Just now',
+            };
+          });
+          setListings(items);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error('Firestore Error:', error);
+          setIsLoading(false);
+        }
+      );
       return unsubscribe;
     });
     return () => task.cancel();
@@ -135,32 +126,9 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
     setTimeout(() => setIsLoading(false), 800);
   };
 
-  const handleLogout = () => {
-    Alert.alert('Confirm Logout', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut(auth);
-            router.replace('/(auth)/LoginScreen');
-          } catch (error: any) {
-            alert(error.message);
-          }
-        }
-      },
-    ]);
-  };
-
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1500);
-  };
-
-  const toggleDrawer = (open: boolean) => {
-    setIsDrawerOpen(open);
-    Animated.timing(slideAnim, { toValue: open ? 0 : -DRAWER_WIDTH, duration: 300, useNativeDriver: true }).start();
   };
 
   const toggleHCDC = () => {
@@ -169,85 +137,104 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
     setShowFullMeaning(!showFullMeaning);
   };
 
-  const filteredListings = listings.filter(item => {
-    const itemCatId = (item.categoryId || "").toLowerCase().trim();
-    const itemCatString = (item.category || "").toLowerCase().trim();
+  const filteredListings = listings.filter((item) => {
+    const itemCatId = (item.categoryId || '').toLowerCase().trim();
+    const itemCatString = (item.category || '').toLowerCase().trim();
     const activeCat = activeCategory.toLowerCase().trim();
 
-    const matchesCategory = 
-      activeCategory === 'All' || 
-      itemCatId === activeCat || 
-      itemCatId === activeCat + 's' || 
+    const matchesCategory =
+      activeCategory === 'All' ||
+      itemCatId === activeCat ||
+      itemCatId === activeCat + 's' ||
       itemCatId + 's' === activeCat ||
       itemCatString === activeCat;
 
     const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch = 
-      (item.name || "").toLowerCase().includes(searchLower) || 
-      (item.category || "").toLowerCase().includes(searchLower);
+    const matchesSearch =
+      (item.name || '').toLowerCase().includes(searchLower) ||
+      (item.category || '').toLowerCase().includes(searchLower);
 
     return matchesCategory && matchesSearch;
   });
 
-  const arrowRotation = arrowRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
+  const arrowRotation = arrowRotate.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FFF' }}>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle={isDrawerOpen || selectedItem ? "light-content" : "dark-content"} />
+        <StatusBar
+          barStyle={isDrawerOpen || selectedItem ? 'light-content' : 'dark-content'}
+        />
         <ModalItemDetails selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
-        <DrawerMenu slideAnim={slideAnim} toggleDrawer={toggleDrawer} handleLogout={handleLogout} />
-
-        {isDrawerOpen && (
-          <TouchableWithoutFeedback onPress={() => toggleDrawer(false)}>
-            <View style={styles.overlay} />
-          </TouchableWithoutFeedback>
-        )}
 
         <View style={styles.topNav}>
           <TouchableOpacity onPress={() => toggleDrawer(true)}>
             <Ionicons name="menu-outline" size={scale(28)} color="#222D31" />
           </TouchableOpacity>
-          <Text style={styles.logoMini}>Cross<Text style={{ color: '#AF0B01' }}>Rent</Text></Text>
-          
-          {/* PROFILE ICON - Visual Only, Matches ChatScreen Style */}
-          <View style={[styles.profileCircle, { overflow: 'hidden' }]}>
-            {userProfile?.photoURL ? (
-              <Image 
-                source={{ uri: userProfile.photoURL }} 
-                style={{ width: '100%', height: '100%', borderRadius: scale(16) }} 
+          <Text style={styles.logoMini}>
+            Cross<Text style={{ color: '#AF0B01' }}>Rent</Text>
+          </Text>
+
+          {/* PROFILE AVATAR — navigates to profile, live base64 pic */}
+          <TouchableOpacity
+            onPress={() => router.push('/profile' as any)}
+            style={[styles.profileCircle, { overflow: 'hidden' }]}
+            activeOpacity={0.8}
+          >
+            {avatarUrl ? (
+              <Image
+                source={{ uri: avatarUrl }}
+                style={{ width: '100%', height: '100%', borderRadius: scale(16) }}
               />
             ) : (
-              <View style={{ 
-                width: '100%', 
-                height: '100%', 
-                borderRadius: scale(16), 
-                backgroundColor: '#222D31', 
-                justifyContent: 'center', 
-                alignItems: 'center' 
-              }}>
+              <View
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: scale(16),
+                  backgroundColor: '#222D31',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
                 <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: scale(12) }}>
-                  {userProfile?.email?.charAt(0).toUpperCase() || "U"}
+                  {userEmail?.charAt(0).toUpperCase() || 'U'}
                 </Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#AF0B01" colors={['#AF0B01']} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#AF0B01"
+              colors={['#AF0B01']}
+            />
           }
         >
           <View style={styles.greetingContainer}>
-            <TouchableOpacity onPress={toggleHCDC} activeOpacity={0.7} style={styles.hcdcToggle}>
+            <TouchableOpacity
+              onPress={toggleHCDC}
+              activeOpacity={0.7}
+              style={styles.hcdcToggle}
+            >
               <Text style={[styles.hcdcText, showFullMeaning && { color: '#AF0B01' }]}>
                 {showFullMeaning ? 'Holy Cross of Davao College' : 'HCDC'}
               </Text>
               <Animated.View style={{ transform: [{ rotate: arrowRotation }] }}>
-                <Ionicons name="chevron-down" size={scale(16)} color={showFullMeaning ? "#AF0B01" : "#0038A8"} />
+                <Ionicons
+                  name="chevron-down"
+                  size={scale(16)}
+                  color={showFullMeaning ? '#AF0B01' : '#0038A8'}
+                />
               </Animated.View>
             </TouchableOpacity>
             <Animated.Text style={[styles.greetingText, { opacity: fadeAnim }]}>
@@ -257,7 +244,12 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
 
           <View style={styles.searchSection}>
             <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={scale(20)} color="#cfd4da" style={{ marginRight: 10 }} />
+              <Ionicons
+                name="search-outline"
+                size={scale(20)}
+                color="#cfd4da"
+                style={{ marginRight: 10 }}
+              />
               <TextInput
                 placeholder="Search items..."
                 style={styles.searchInput}
@@ -273,7 +265,7 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
             {dbCategories.map((cat) => (
               <CategoryCard
                 key={cat.id}
-                cat={{ ...cat, name: cat.displayName }} 
+                cat={{ ...cat, name: cat.displayName }}
                 isActive={activeCategory === cat.id}
                 onPress={() => handleCategoryPress(cat.id)}
               />
@@ -281,8 +273,11 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
           </View>
 
           <Text style={styles.sectionLabel}>
-            {searchQuery.length > 0 ? `Results for "${searchQuery}"` : 
-            (activeCategory === 'All' ? 'All Items' : formatCategoryName(activeCategory))}
+            {searchQuery.length > 0
+              ? `Results for "${searchQuery}"`
+              : activeCategory === 'All'
+              ? 'All Items'
+              : formatCategoryName(activeCategory)}
           </Text>
 
           {isLoading ? (
@@ -292,11 +287,11 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
           ) : (
             <View style={styles.gridContainer}>
               {filteredListings.length > 0 ? (
-                filteredListings.map(item => (
-                  <ListingCard 
-                    key={item.id} 
-                    item={item} 
-                    onPress={() => setSelectedItem(item)} 
+                filteredListings.map((item) => (
+                  <ListingCard
+                    key={item.id}
+                    item={item}
+                    onPress={() => setSelectedItem(item)}
                   />
                 ))
               ) : (
@@ -311,7 +306,6 @@ const [userProfile, setUserProfile] = useState<{photoURL: string | null, email: 
             <Text style={styles.endOfListText}>No more listings.</Text>
           )}
         </ScrollView>
-
       </SafeAreaView>
     </View>
   );

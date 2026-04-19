@@ -8,43 +8,61 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Alert,
-  StyleSheet
+  Dimensions,
 } from 'react-native';
+
+const { width } = Dimensions.get('window');
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { db, auth } from '../../../firebase';
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  doc, 
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
   where,
   getDoc,
-  deleteDoc
+  deleteDoc,
 } from 'firebase/firestore';
-
 import { chatStyles } from './styles';
+import { transStyles as styles, scale } from '../transactions/styles';
 import { Image } from 'expo-image';
+
+const formatTimeLabel = (seconds: number): string => {
+  const msgDate = new Date(seconds * 1000);
+  const now = new Date();
+  const diffMs = now.getTime() - msgDate.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHrs = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHrs < 24) return `${diffHrs}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  return msgDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
 
 export default function ChatScreen() {
   const router = useRouter();
-
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Selection Logic
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedChatIds, setSelectedChatIds] = useState<string[]>([]);
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
-    setLoading(true);
 
     const q = query(
-      collection(db, 'chats'), 
-      where('participants', 'array-contains', user.uid), 
+      collection(db, 'chats'),
+      where('participants', 'array-contains', user.uid),
       orderBy('updatedAt', 'desc')
     );
 
@@ -53,21 +71,24 @@ export default function ChatScreen() {
         snapshot.docs.map(async (d) => {
           const data = d.data();
           const otherId = data.participants.find((id: string) => id !== user.uid);
-          let name = "User", photo = null;
+          let name = 'User', photo = null;
           if (otherId) {
+            const profileSnap = await getDoc(doc(db, 'profiles', otherId));
             const uSnap = await getDoc(doc(db, 'users', otherId));
-            if (uSnap.exists()) {
-              name = uSnap.data().email; 
-              photo = uSnap.data().photoURL;
-            }
+            if (uSnap.exists()) name = uSnap.data().email;
+            if (profileSnap.exists()) photo = profileSnap.data().profilePicUrl || null;
           }
+
           const isMe = data.lastSenderEmail === auth.currentUser?.email;
-          return { 
-            id: d.id, 
-            ...data, 
-            displayEmail: name, 
-            displayPhoto: photo, 
-            lastMsgDisplay: data.lastMessage ? `${isMe ? "You: " : ""}${data.lastMessage}` : "No messages yet" 
+          return {
+            id: d.id,
+            ...data,
+            displayEmail: name,
+            displayPhoto: photo,
+            updatedAtSeconds: data.updatedAt?.seconds ?? null,
+            lastMsgDisplay: data.lastMessage
+              ? `${isMe ? 'You: ' : ''}${data.lastMessage}`
+              : 'No messages yet',
           };
         })
       );
@@ -75,27 +96,25 @@ export default function ChatScreen() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
   const toggleChatSelection = (id: string) => {
-    if (selectedChatIds.includes(id)) {
-      setSelectedChatIds(prev => prev.filter(item => item !== id));
-    } else {
-      setSelectedChatIds(prev => [...prev, id]);
-    }
+    setSelectedChatIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
   };
 
   const handleDeleteSelected = () => {
     if (selectedChatIds.length === 0) return;
     Alert.alert(
-      "Delete Conversations",
-      `Are you sure you want to delete ${selectedChatIds.length} conversation(s)?`,
+      'Delete Conversations',
+      `Delete ${selectedChatIds.length} conversation(s)?`,
       [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive", 
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
             try {
               for (const id of selectedChatIds) {
@@ -104,108 +123,151 @@ export default function ChatScreen() {
               setIsSelectionMode(false);
               setSelectedChatIds([]);
             } catch (error) {
-              console.error("Error deleting chats:", error);
+              console.error(error);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
-  const renderHeader = () => {
-    const headerDisplayText = isSelectionMode ? `${selectedChatIds.length} Selected` : "Messages";
-
-    return (
-      <View style={chatStyles.redHeader}>
-        <SafeAreaView style={chatStyles.safeAreaCustom}>
-          <View style={{ height: 60, width: '100%', flexDirection: 'row', alignItems: 'center' }}>
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={chatStyles.headerTitle}>{headerDisplayText}</Text>
-              </View>
-            </View>
-
-            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 15 }}>
-              <View style={{ width: 50 }}>
-                {isSelectionMode && (
-                  <TouchableOpacity onPress={() => { setIsSelectionMode(false); setSelectedChatIds([]); }} style={chatStyles.iconButton}>
-                    <Ionicons name="close" size={26} color="#FFF" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <TouchableOpacity 
-                onPress={() => { setIsSelectionMode(!isSelectionMode); setSelectedChatIds([]); }}
-                style={{ width: 60, alignItems: 'flex-end' }}
-              >
-                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 15 }}>
-                  {isSelectionMode ? "Cancel" : "Select"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SafeAreaView>
-      </View>
-    );
-  };
-
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
-      <StatusBar barStyle="light-content" backgroundColor="#AF0B01" />
-      {renderHeader()}
-      <View style={chatStyles.contentArea}>
+    <SafeAreaView
+      style={[styles.container, isSelectionMode && { backgroundColor: '#AF0B01' }]}
+    >
+      <StatusBar barStyle={isSelectionMode ? 'light-content' : 'dark-content'} />
+
+      <View style={[styles.topNav, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
+        {isSelectionMode && (
+          <TouchableOpacity
+            onPress={() => { setIsSelectionMode(false); setSelectedChatIds([]); }}
+            style={{ marginRight: scale(12) }}
+          >
+            <Ionicons name="close-outline" size={scale(26)} color="#FFF" />
+          </TouchableOpacity>
+        )}
+        <Text
+          style={[
+            styles.logoMini,
+            { flex: 1 },
+            isSelectionMode && { color: '#FFF' },
+          ]}
+        >
+          {isSelectionMode ? `${selectedChatIds.length} Selected` : 'Messages'}
+        </Text>
+        {isSelectionMode ? (
+          <TouchableOpacity onPress={handleDeleteSelected}>
+            <Ionicons name="trash-outline" size={scale(24)} color="#FFF" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => setIsSelectionMode(true)}>
+            <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
             <ActivityIndicator size="large" color="#AF0B01" />
           </View>
         ) : (
           <FlatList
             data={chats}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={[chatStyles.listContainer, { paddingBottom: 100, flexGrow: 1 }]}
-            ListEmptyComponent={
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, marginTop: 100 }}>
-                <Ionicons name="chatbubbles-outline" size={80} color="#cfd4da" />
-                <Text style={{ fontSize: 18, fontWeight: '700', color: '#cfd4da', marginTop: 15 }}>No Messages Yet</Text>
-              </View>
-            }
+            extraData={tick}
+            contentContainerStyle={{ padding: scale(20) }}
             renderItem={({ item }) => {
               const isSelected = selectedChatIds.includes(item.id);
+              const timeLabel = item.updatedAtSeconds
+                ? formatTimeLabel(item.updatedAtSeconds)
+                : '';
+
               return (
-                <TouchableOpacity 
+                <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() => 
-                    isSelectionMode 
-                    ? toggleChatSelection(item.id) 
-                    : router.push({ pathname: '../../message/convo', params: { chatId: item.id } })
+                  onLongPress={() => {
+                    setIsSelectionMode(true);
+                    toggleChatSelection(item.id);
+                  }}
+                  onPress={() =>
+                    isSelectionMode
+                      ? toggleChatSelection(item.id)
+                      : router.push({
+                          pathname: '../../message/convo',
+                          params: { chatId: item.id },
+                        })
                   }
-                  style={[chatStyles.chatItem, isSelected && { backgroundColor: '#F9F9F9' }]}
+                  style={[
+                    chatStyles.chatItem,
+                    isSelected && { borderColor: '#AF0B01', backgroundColor: '#FFF9F9' },
+                  ]}
                 >
                   <View style={chatStyles.avatar}>
-                    {item.displayPhoto ? <Image source={{ uri: item.displayPhoto }} style={{ width: 50, height: 50, borderRadius: 25 }} /> : 
-                    <View style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#222D31', justifyContent: 'center', alignItems: 'center' }}>
-                      <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{item.displayEmail?.charAt(0).toUpperCase()}</Text>
-                    </View>}
+                    {item.displayPhoto ? (
+                      <Image
+                        source={{ uri: item.displayPhoto }}
+                        style={{ width: 50, height: 50, borderRadius: 25 }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 50,
+                          height: 50,
+                          borderRadius: 25,
+                          backgroundColor: '#222D31',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 16 }}>
+                          {item.displayEmail?.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={chatStyles.chatInfo}>
-                    <Text style={chatStyles.userName}>{item.displayEmail}</Text>
-                    <Text style={chatStyles.lastMsg} numberOfLines={1}>{item.lastMsgDisplay}</Text>
+
+                  <View style={[chatStyles.chatInfo, { overflow: 'hidden' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text
+                        style={[chatStyles.userName, { flex: 1, flexShrink: 1, marginRight: scale(8) }]}
+                        numberOfLines={1}
+                      >
+                        {item.displayEmail}
+                      </Text>
+                      {timeLabel ? (
+                        <Text style={{ fontSize: scale(11), fontWeight: '700', color: '#9CA3AF', flexShrink: 0 }}>
+                          {timeLabel}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text style={chatStyles.lastMsg} numberOfLines={1}>
+                      {item.lastMsgDisplay}
+                    </Text>
                   </View>
+
                   {isSelectionMode && (
-                    <Ionicons name={isSelected ? "checkmark-circle" : "ellipse-outline"} size={26} color="#AF0B01" />
+                    <Ionicons
+                      name={isSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                      size={24}
+                      color="#AF0B01"
+                      style={{ marginLeft: scale(8) }}
+                    />
                   )}
                 </TouchableOpacity>
               );
             }}
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', marginTop: scale(195) }}>
+                <Ionicons name="chatbubbles-outline" size={scale(70)} color="#cfd4da" />
+                <Text style={[styles.noResultsText, { marginTop: scale(10) }]}>
+                  No Messages Yet
+                </Text>
+              </View>
+            }
           />
         )}
       </View>
-
-      {isSelectionMode && selectedChatIds.length > 0 && (
-        <TouchableOpacity style={chatStyles.fab} onPress={handleDeleteSelected}>
-          <Ionicons name="trash" size={28} color="#FFF" />
-        </TouchableOpacity>
-      )}
-    </View>
+    </SafeAreaView>
   );
 }
