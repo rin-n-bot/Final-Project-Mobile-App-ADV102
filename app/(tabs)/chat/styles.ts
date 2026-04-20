@@ -44,7 +44,7 @@ export const chatStyles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#FFF',
     borderRadius: 12,
-    marginTop: -5,
+    marginTop: 0,
     marginBottom: 10,
     borderWidth: 1.5,
     borderColor: '#cfd4da',

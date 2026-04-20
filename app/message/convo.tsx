@@ -28,6 +28,90 @@ import { chatStyles } from '../(tabs)/chat/styles';
 import { Image } from 'expo-image';
 import { scale } from '../(tabs)/transactions/styles';
 
+// --- MESSENGER-STYLE TIME DIVIDER LOGIC ---
+// Show a time divider when gap between consecutive messages >= 15 minutes
+const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
+
+const formatDividerTime = (seconds: number): string => {
+  const date = new Date(seconds * 1000);
+  const now = new Date();
+
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  if (isToday) return timeStr;
+  if (isYesterday) return `Yesterday ${timeStr}`;
+
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+  if (diffDays < 7) {
+    return date.toLocaleDateString(undefined, { weekday: 'long' }) + ' ' + timeStr;
+  }
+
+  const sameYear = date.getFullYear() === now.getFullYear();
+  return (
+    date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      ...(sameYear ? {} : { year: 'numeric' }),
+    }) +
+    ' ' +
+    timeStr
+  );
+};
+
+// Build a flat list of items: either a message or a time divider
+type MessageItem =
+  | { type: 'message'; id: string; data: any }
+  | { type: 'divider'; id: string; label: string };
+
+const buildMessageItems = (messages: any[]): MessageItem[] => {
+  // messages are already in descending order (inverted FlatList)
+  // We need to inject dividers between messages with large gaps.
+  // Since FlatList is inverted, index 0 = newest. We work in display order (reversed).
+  const items: MessageItem[] = [];
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    items.push({ type: 'message', id: msg.id, data: msg });
+
+    const nextMsg = messages[i + 1];
+    if (nextMsg) {
+      const currTime = (msg.createdAt?.seconds ?? 0) * 1000;
+      const nextTime = (nextMsg.createdAt?.seconds ?? 0) * 1000;
+      const gap = currTime - nextTime; // curr is newer, next is older (descending list)
+      if (gap >= TIME_GAP_THRESHOLD_MS && nextMsg.createdAt?.seconds) {
+        items.push({
+          type: 'divider',
+          id: `divider-${nextMsg.id}`,
+          label: formatDividerTime(nextMsg.createdAt.seconds),
+        });
+      }
+    } else {
+      // After the oldest message, always show its time
+      if (msg.createdAt?.seconds) {
+        items.push({
+          type: 'divider',
+          id: `divider-first-${msg.id}`,
+          label: formatDividerTime(msg.createdAt.seconds),
+        });
+      }
+    }
+  }
+
+  return items;
+};
+
 export default function MessageScreen() {
   const { chatId } = useLocalSearchParams();
   const router = useRouter();
@@ -63,7 +147,6 @@ export default function MessageScreen() {
             const uSnap = await getDoc(doc(db, 'users', otherId));
             if (uSnap.exists()) setActiveChatEmail(uSnap.data().email);
 
-            // Fetch profile pic from profiles collection
             const profileSnap = await getDoc(doc(db, 'profiles', otherId));
             if (profileSnap.exists()) {
               setRecipientPhoto(profileSnap.data().profilePicUrl || null);
@@ -110,10 +193,7 @@ export default function MessageScreen() {
     }
   };
 
-  const formatMsgTime = (seconds: number): string => {
-    const date = new Date(seconds * 1000);
-    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  };
+  const messageItems = buildMessageItems(messages);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FFF' }}>
@@ -135,13 +215,13 @@ export default function MessageScreen() {
               <Ionicons name="arrow-back" size={28} color="#FFF" />
             </TouchableOpacity>
 
-            {/* RECIPIENT AVATAR in header */}
+            {/* RECIPIENT AVATAR in header — same bg as bubble avatar (#222D31) */}
             <View
               style={{
                 width: 34,
                 height: 34,
                 borderRadius: 17,
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: '#222D31',
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginLeft: 10,
@@ -178,22 +258,48 @@ export default function MessageScreen() {
         ) : (
           <>
             <FlatList
-              data={messages}
+              data={messageItems}
               inverted
               keyExtractor={(item) => item.id}
               contentContainerStyle={chatStyles.messageList}
               renderItem={({ item }) => {
-                const isMine = item.senderId === auth.currentUser?.uid;
-                const timeStr = item.createdAt?.seconds
-                  ? formatMsgTime(item.createdAt.seconds)
-                  : '';
+                // TIME DIVIDER
+                if (item.type === 'divider') {
+                  return (
+                    <View
+                      style={{
+                        alignItems: 'center',
+                        marginVertical: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '600',
+                          color: '#9CA3AF',
+                          backgroundColor: '#F3F4F6',
+                          paddingHorizontal: 10,
+                          paddingVertical: 3,
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  );
+                }
+
+                // MESSAGE BUBBLE
+                const msg = item.data;
+                const isMine = msg.senderId === auth.currentUser?.uid;
 
                 return (
                   <View
                     style={{
                       flexDirection: isMine ? 'row-reverse' : 'row',
                       alignItems: 'flex-end',
-                      marginVertical: 4,
+                      marginVertical: 3,
                     }}
                   >
                     {/* RECIPIENT AVATAR beside bubble */}
@@ -208,6 +314,7 @@ export default function MessageScreen() {
                           alignItems: 'center',
                           marginRight: 8,
                           overflow: 'hidden',
+                          flexShrink: 0,
                         }}
                       >
                         {recipientPhoto ? (
@@ -217,44 +324,38 @@ export default function MessageScreen() {
                           />
                         ) : (
                           <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '800' }}>
-                            {item.senderEmail?.charAt(0).toUpperCase()}
+                            {msg.senderEmail?.charAt(0).toUpperCase()}
                           </Text>
                         )}
                       </View>
                     )}
 
-                    {/* BUBBLE + TIME stacked */}
+                    {/* BUBBLE — capsule shape, no word break */}
                     <View
                       style={{
-                        alignItems: isMine ? 'flex-end' : 'flex-start',
-                        maxWidth: '78%',
+                        maxWidth: '72%',
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 22,
+                        backgroundColor: isMine ? '#222D31' : '#ffffff',
+                        borderWidth: isMine ? 0 : 1.5,
+                        borderColor: '#cfd4da',
+                        // Messenger-style: flatten the corner on sender side
+                        borderBottomRightRadius: isMine ? 4 : 22,
+                        borderBottomLeftRadius: isMine ? 22 : 4,
                       }}
                     >
-                      <View
-                        style={[
-                          chatStyles.bubble,
-                          isMine ? chatStyles.myBubble : chatStyles.theirBubble,
-                          { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, marginBottom: 2 },
-                        ]}
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          lineHeight: 22,
+                          color: isMine ? '#FFF' : '#222D31',
+                          flexShrink: 1,
+                          flexWrap: 'wrap',
+                        }}
                       >
-                        <Text style={[chatStyles.msgText, { color: isMine ? '#FFF' : '#222D31' }]}>
-                          {item.text}
-                        </Text>
-                      </View>
-                      {/* TIME beside/below bubble */}
-                      {timeStr ? (
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '600',
-                            color: '#9CA3AF',
-                            marginBottom: 4,
-                            paddingHorizontal: 4,
-                          }}
-                        >
-                          {timeStr}
-                        </Text>
-                      ) : null}
+                        {msg.text}
+                      </Text>
                     </View>
                   </View>
                 );

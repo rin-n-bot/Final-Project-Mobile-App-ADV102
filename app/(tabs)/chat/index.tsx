@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Animated,
+  TextInput,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -18,43 +20,74 @@ import { db, auth } from '../../../firebase';
 import {
   collection,
   query,
-  orderBy,
   onSnapshot,
   doc,
   where,
   getDoc,
+  getDocs,
   deleteDoc,
 } from 'firebase/firestore';
 import { chatStyles } from './styles';
 import { transStyles as styles, scale } from '../transactions/styles';
 import { Image } from 'expo-image';
 
+
+// --- TIME LABEL ---
 const formatTimeLabel = (seconds: number): string => {
   const msgDate = new Date(seconds * 1000);
   const now = new Date();
-  const diffMs = now.getTime() - msgDate.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHrs = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m`;
-  if (diffHrs < 24) return `${diffHrs}h`;
-  if (diffDays < 7) return `${diffDays}d`;
-  return msgDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  const isToday =
+    msgDate.getDate() === now.getDate() &&
+    msgDate.getMonth() === now.getMonth() &&
+    msgDate.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return msgDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
+  const diffDays = Math.floor((now.getTime() - msgDate.getTime()) / 86400000);
+  if (diffDays < 7) return msgDate.toLocaleDateString(undefined, { weekday: 'short' });
+
+  const sameYear = msgDate.getFullYear() === now.getFullYear();
+  return msgDate.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  });
 };
+
+type ChatTab = 'listing' | 'renting';
 
 export default function ChatScreen() {
   const router = useRouter();
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chatTab, setChatTab] = useState<ChatTab>('listing');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedChatIds, setSelectedChatIds] = useState<string[]>([]);
 
+  // Search state
+const [isSearchVisible] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+const searchBarHeight = useRef(new Animated.Value(52)).current;
+  const searchInputRef = useRef<TextInput>(null);
+
+  // Tab fade
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+  }, [chatTab]);
+
+  // Tick every 60s
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const interval = setInterval(() => setTick((t) => t + 1), 30000);
+    const interval = setInterval(() => setTick((t) => t + 1), 60000);
     return () => clearInterval(interval);
   }, []);
+
+
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -62,8 +95,7 @@ export default function ChatScreen() {
 
     const q = query(
       collection(db, 'chats'),
-      where('participants', 'array-contains', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('participants', 'array-contains', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
@@ -72,14 +104,32 @@ export default function ChatScreen() {
           const data = d.data();
           const otherId = data.participants.find((id: string) => id !== user.uid);
           let name = 'User', photo = null;
+
           if (otherId) {
-            const profileSnap = await getDoc(doc(db, 'profiles', otherId));
-            const uSnap = await getDoc(doc(db, 'users', otherId));
+            const [profileSnap, uSnap] = await Promise.all([
+              getDoc(doc(db, 'profiles', otherId)),
+              getDoc(doc(db, 'users', otherId)),
+            ]);
             if (uSnap.exists()) name = uSnap.data().email;
             if (profileSnap.exists()) photo = profileSnap.data().profilePicUrl || null;
           }
 
-          const isMe = data.lastSenderEmail === auth.currentUser?.email;
+          const isMe = data.lastSenderEmail === user.email;
+          const readBy: string[] = data.readBy ?? [];
+          const isUnread = !!data.lastMessage && !isMe && !readBy.includes(user.uid);
+
+          let role: ChatTab = 'renting';
+          if (otherId) {
+            const txSnap = await getDocs(
+              query(
+                collection(db, 'transactions'),
+                where('ownerId', '==', user.uid),
+                where('renterId', '==', otherId)
+              )
+            );
+            if (!txSnap.empty) role = 'listing';
+          }
+
           return {
             id: d.id,
             ...data,
@@ -89,15 +139,30 @@ export default function ChatScreen() {
             lastMsgDisplay: data.lastMessage
               ? `${isMe ? 'You: ' : ''}${data.lastMessage}`
               : 'No messages yet',
+            isUnread,
+            role,
           };
         })
       );
+
+      enriched.sort((a, b) => (b.updatedAtSeconds ?? 0) - (a.updatedAtSeconds ?? 0));
       setChats(enriched);
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
+
+  const filteredChats = chats.filter((c) => {
+    const matchesTab = c.role === chatTab;
+    if (!matchesTab) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      c.displayEmail?.toLowerCase().includes(q) ||
+      c.lastMsgDisplay?.toLowerCase().includes(q)
+    );
+  });
 
   const toggleChatSelection = (id: string) => {
     setSelectedChatIds((prev) =>
@@ -137,6 +202,7 @@ export default function ChatScreen() {
     >
       <StatusBar barStyle={isSelectionMode ? 'light-content' : 'dark-content'} />
 
+      {/* TOP NAV */}
       <View style={[styles.topNav, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
         {isSelectionMode && (
           <TouchableOpacity
@@ -147,11 +213,7 @@ export default function ChatScreen() {
           </TouchableOpacity>
         )}
         <Text
-          style={[
-            styles.logoMini,
-            { flex: 1 },
-            isSelectionMode && { color: '#FFF' },
-          ]}
+          style={[styles.logoMini, { flex: 1 }, isSelectionMode && { color: '#FFF' }]}
         >
           {isSelectionMode ? `${selectedChatIds.length} Selected` : 'Messages'}
         </Text>
@@ -161,27 +223,102 @@ export default function ChatScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => setIsSelectionMode(true)}>
-            <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
-          </TouchableOpacity>
+  <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
+</TouchableOpacity>
         )}
       </View>
 
-      <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+      {/* SEARCH BAR (animated height) */}
+      {isSearchVisible && (
+        <View
+          style={{
+            height: 52,
+            overflow: 'hidden',
+            backgroundColor: '#FFF',
+            paddingHorizontal: scale(16),
+            justifyContent: 'center',
+
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#F3F4F6',
+              borderRadius: 10,
+              paddingHorizontal: scale(10),
+              height: 38,
+            }}
+          >
+            <Ionicons name="search-outline" size={16} color="#9CA3AF" style={{ marginRight: 6 }} />
+            <TextInput
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search messages..."
+              placeholderTextColor="#9CA3AF"
+              style={{
+                flex: 1,
+                fontSize: scale(14),
+                color: '#222D31',
+                paddingVertical: 0,
+              }}
+              returnKeyType="search"
+              clearButtonMode="while-editing"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={16} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* TABS — hidden in selection mode */}
+      {!isSelectionMode && (
+        <View style={{ flexDirection: 'row', paddingHorizontal: scale(10), backgroundColor: '#FFF' }}>
+          {(['listing', 'renting'] as ChatTab[]).map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setChatTab(tab)}
+              style={{
+                flex: 1,
+                paddingVertical: scale(12),
+                borderBottomWidth: 2,
+                borderBottomColor: chatTab === tab ? '#AF0B01' : 'transparent',
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: scale(13),
+                  fontWeight: '800',
+                  color: chatTab === tab ? '#AF0B01' : '#9CA3AF',
+                }}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* LIST */}
+      <Animated.View style={{ flex: 1, backgroundColor: '#FFF', opacity: fadeAnim }}>
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center' }}>
             <ActivityIndicator size="large" color="#AF0B01" />
           </View>
         ) : (
           <FlatList
-            data={chats}
+            data={filteredChats}
             keyExtractor={(item) => item.id}
             extraData={tick}
             contentContainerStyle={{ padding: scale(20) }}
             renderItem={({ item }) => {
               const isSelected = selectedChatIds.includes(item.id);
-              const timeLabel = item.updatedAtSeconds
-                ? formatTimeLabel(item.updatedAtSeconds)
-                : '';
+              const timeLabel = item.updatedAtSeconds ? formatTimeLabel(item.updatedAtSeconds) : '';
 
               return (
                 <TouchableOpacity
@@ -193,16 +330,14 @@ export default function ChatScreen() {
                   onPress={() =>
                     isSelectionMode
                       ? toggleChatSelection(item.id)
-                      : router.push({
-                          pathname: '../../message/convo',
-                          params: { chatId: item.id },
-                        })
+                      : router.push({ pathname: '../../message/convo', params: { chatId: item.id } })
                   }
                   style={[
                     chatStyles.chatItem,
                     isSelected && { borderColor: '#AF0B01', backgroundColor: '#FFF9F9' },
                   ]}
                 >
+                  {/* AVATAR */}
                   <View style={chatStyles.avatar}>
                     {item.displayPhoto ? (
                       <Image
@@ -227,21 +362,39 @@ export default function ChatScreen() {
                     )}
                   </View>
 
+                  {/* CHAT INFO */}
                   <View style={[chatStyles.chatInfo, { overflow: 'hidden' }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Text
-                        style={[chatStyles.userName, { flex: 1, flexShrink: 1, marginRight: scale(8) }]}
+                        style={[
+                          chatStyles.userName,
+                          { flex: 1, flexShrink: 1, marginRight: scale(8) },
+                          item.isUnread && { color: '#111', fontWeight: '900' },
+                        ]}
                         numberOfLines={1}
                       >
                         {item.displayEmail}
                       </Text>
                       {timeLabel ? (
-                        <Text style={{ fontSize: scale(11), fontWeight: '700', color: '#9CA3AF', flexShrink: 0 }}>
+                        <Text
+                          style={{
+                            fontSize: scale(11),
+                            fontWeight: '700',
+                            color: item.isUnread ? '#222D31' : '#9CA3AF',
+                            flexShrink: 0,
+                          }}
+                        >
                           {timeLabel}
                         </Text>
                       ) : null}
                     </View>
-                    <Text style={chatStyles.lastMsg} numberOfLines={1}>
+                    <Text
+                      style={[
+                        chatStyles.lastMsg,
+                        item.isUnread && { color: '#222D31', fontWeight: '700' },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {item.lastMsgDisplay}
                     </Text>
                   </View>
@@ -258,16 +411,25 @@ export default function ChatScreen() {
               );
             }}
             ListEmptyComponent={
-              <View style={{ alignItems: 'center', marginTop: scale(195) }}>
-                <Ionicons name="chatbubbles-outline" size={scale(70)} color="#cfd4da" />
-                <Text style={[styles.noResultsText, { marginTop: scale(10) }]}>
-                  No Messages Yet
-                </Text>
-              </View>
+              searchQuery.trim() ? (
+                <View style={{ alignItems: 'center', marginTop: scale(195) }}>
+                  <Ionicons name="search-outline" size={scale(70)} color="#cfd4da" />
+                  <Text style={[styles.noResultsText, { marginTop: scale(10) }]}>
+                    No results for "{searchQuery}"
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ alignItems: 'center', marginTop: scale(195) }}>
+                  <Ionicons name="chatbubbles-outline" size={scale(70)} color="#cfd4da" />
+                  <Text style={[styles.noResultsText, { marginTop: scale(10) }]}>
+                    No Messages Yet
+                  </Text>
+                </View>
+              )
             }
           />
         )}
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }

@@ -109,7 +109,7 @@ function GlassCapsuleNav({ state, navigation }: any) {
 
       <View style={styles.addWrapper}>
         <TouchableOpacity
-          onPress={() => router.push('../add')}
+          onPress={() => router.push('../add-listing')}
           activeOpacity={0.85}
           style={styles.inlineAddBtn}
         >
