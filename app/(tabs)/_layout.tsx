@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   glassCapsule: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'rgba(34, 45, 49, 0.95)',
+    backgroundColor: 'rgba(38, 53, 58, 0.95)',
     height: scale(65),
     borderRadius: scale(32),
     alignItems: 'center',

@@ -9,365 +9,358 @@ export const CARD_WIDTH = (width - (HORIZONTAL_PADDING * 2) - GAP) / 2;
 
 export const styles = StyleSheet.create({
   // --- LAYOUT & GLOBAL ---
-  container: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF', 
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  // GUIDE: ONLY CHANGE - overlay removed (no longer needed in HomeScreen)
-  divider: { 
-    height: 1, 
-    backgroundColor: '#F0F0F0', 
-    marginBottom: scale(20) 
+  divider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginBottom: scale(20),
   },
 
   // --- DRAWER NAVIGATION ---
   backdrop: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  zIndex: 998,
-},
-  drawer: { 
-    position: 'absolute', 
-    left: 0, top: 0, bottom: 0, 
-    width: DRAWER_WIDTH, 
-    backgroundColor: '#222D31', 
-    zIndex: 100, 
-    elevation: 100, 
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 20
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    zIndex: 998,
   },
-  drawerHeader: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20, 
-    paddingVertical: 15, 
-    borderBottomWidth: 1, 
-    borderBottomColor: 'rgba(241, 250, 238, 0.1)' 
+  drawer: {
+    position: 'absolute',
+    left: 0, top: 0, bottom: 0,
+    width: DRAWER_WIDTH,
+    backgroundColor: '#222D31',
+    zIndex: 100,
+    elevation: 100,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 20,
   },
-  drawerItems: { 
-    padding: 20 
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(241, 250, 238, 0.1)',
   },
-  drawerItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 25 
+  drawerItems: { padding: 20 },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
   },
-  drawerItemText: { 
-    marginLeft: 15, 
-    fontSize: 16, 
-    fontWeight: '600', 
-    color: '#FFFFFF' 
+  drawerItemText: {
+    marginLeft: 15,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 
   // --- TOP NAVIGATION ---
-  topNav: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    height: scale(60) 
+  topNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: HORIZONTAL_PADDING,
+    height: scale(60),
+    backgroundColor: '#F5F5F5',
   },
-  logoMini: { 
-    fontSize: scale(24), 
-    fontWeight: '900', 
-    color: '#222D31', 
-    letterSpacing: -1 
+  logoMini: {
+    fontSize: scale(24),
+    fontWeight: '900',
+    color: '#222D31',
+    letterSpacing: -1,
   },
-  profileCircle: { 
-    width: scale(32), 
-    height: scale(32), 
-    borderRadius: scale(16), 
-    backgroundColor: '#222D31', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  profileCircle: {
+    width: scale(32),
+    height: scale(32),
+    borderRadius: scale(16),
+    backgroundColor: '#222D31',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // --- GREETING & CAMPUS TOGGLE ---
-  greetingContainer: { 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    paddingTop: scale(10), 
-    paddingBottom: scale(15) 
+  greetingContainer: {
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingTop: scale(10),
+    paddingBottom: scale(15),
   },
-  hcdcToggle: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: scale(8), 
-    alignSelf: 'flex-start' 
+  hcdcToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: scale(8),
+    alignSelf: 'flex-start',
   },
-  hcdcText: { 
-    fontSize: scale(14), 
-    fontWeight: '800', 
-    color: '#0038A8', 
-    marginRight: scale(4), 
-    letterSpacing: 0.5 
+  hcdcText: {
+    fontSize: scale(14),
+    fontWeight: '800',
+    color: '#0038A8',
+    marginRight: scale(4),
+    letterSpacing: 0.5,
   },
-  greetingText: { 
-    fontSize: scale(24), 
-    fontWeight: '800', 
-    color: '#222D31', 
-    lineHeight: scale(24.5), 
-    letterSpacing: -0.5 
+  greetingText: {
+    fontSize: scale(24),
+    fontWeight: '800',
+    color: '#222D31',
+    lineHeight: scale(24.5),
+    letterSpacing: -0.5,
   },
 
   // --- SEARCH SECTION ---
-  searchSection: { 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    marginBottom: scale(15) 
+  searchSection: {
+    paddingHorizontal: HORIZONTAL_PADDING,
+    marginBottom: scale(15),
   },
-  searchBar: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    height: scale(55), 
-    borderRadius: 15, 
-    paddingHorizontal: 15, 
-    borderWidth: 1.5, 
-    borderColor: '#cfd4da' 
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: scale(55),
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#cfd4da',
+    backgroundColor: '#FFFFFF',
   },
-  searchInput: { 
-    flex: 1, 
-    fontSize: scale(15), 
-    color: '#1D3557' 
+  searchInput: {
+    flex: 1,
+    fontSize: scale(15),
+    color: '#1D3557',
   },
 
   // --- CATEGORY GRID ---
-  sectionLabel: { 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    fontSize: scale(15), 
-    fontWeight: '800', 
-    color: '#222D31', 
-    marginBottom: scale(15) 
+  sectionLabel: {
+    paddingHorizontal: HORIZONTAL_PADDING,
+    fontSize: scale(15),
+    fontWeight: '800',
+    color: '#222D31',
+    marginBottom: scale(15),
   },
-  categoryGrid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    justifyContent: 'space-between', 
-    marginBottom: scale(5) 
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: HORIZONTAL_PADDING,
+    justifyContent: 'space-between',
+    marginBottom: scale(5),
   },
-  categoryCard: { 
-    width: (width - (HORIZONTAL_PADDING * 2) - scale(20)) / 3, 
-    backgroundColor: '#FFFFFF', 
-    borderRadius: 15, 
-    paddingVertical: scale(15), 
-    alignItems: 'center', 
-    marginBottom: scale(10), 
-    borderWidth: 1.5, 
-    borderColor: '#cfd4da' 
+  categoryCard: {
+    width: (width - (HORIZONTAL_PADDING * 2) - scale(20)) / 3,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    borderColor : '#cfd4da',
+    borderWidth: 1,
+    paddingVertical: scale(15),
+    alignItems: 'center',
+    marginBottom: scale(10),
+
   },
-  activeCategoryCard: { 
-    backgroundColor: '#222D31', 
-    borderColor: '#222D31' 
+  activeCategoryCard: {
+    backgroundColor: '#222D31',
+    borderColor: '#222D31',
   },
-  categoryCardText: { 
-    marginTop: scale(8), 
-    fontSize: scale(11), 
-    fontWeight: '700', 
-    color: '#222D31' 
+  categoryCardText: {
+    marginTop: scale(8),
+    fontSize: scale(11),
+    fontWeight: '700',
+    color: '#222D31',
   },
-  activeCategoryCardText: { 
-    color: '#FFFFFF' 
+  activeCategoryCardText: {
+    color: '#FFFFFF',
   },
 
-  // --- LISTING CARDS ---
-  scrollContent: { 
-    paddingBottom: scale(100) 
+  // --- LISTING CARDS — no border, white bg floats on #F5F5F5 ---
+  scrollContent: { paddingBottom: scale(100) },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: HORIZONTAL_PADDING,
+    justifyContent: 'space-between',
   },
-  gridContainer: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    paddingHorizontal: HORIZONTAL_PADDING, 
-    justifyContent: 'space-between' 
+  card: {
+    width: CARD_WIDTH,
+    marginBottom: scale(15),
+    borderRadius: scale(12),
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    // No border — card stands out against #F5F5F5 background
   },
-  card: { 
-    width: CARD_WIDTH, 
-    marginBottom: scale(15), 
-    borderRadius: scale(12), 
-    backgroundColor: '#FFF', 
-    borderWidth: 1.5, 
-    borderColor: '#cfd4da', 
-    overflow: 'hidden' 
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 1.1,
   },
-  imageContainer: { 
-    width: '100%', 
-    aspectRatio: 1.1 
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
-  cardImage: { 
-    width: '100%', 
-    height: '100%' 
+  cardContent: {
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(8),
   },
-  cardContent: { 
-    paddingHorizontal: scale(10), 
-    paddingVertical: scale(8) 
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: scale(2),
   },
-  cardHeader: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: scale(2) 
+  cardCategory: {
+    fontSize: scale(10),
+    color: '#AF0B01',
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
-  cardCategory: { 
-    fontSize: scale(10), 
-    color: '#AF0B01', 
-    fontWeight: '800', 
-    textTransform: 'uppercase' 
+  cardTitle: {
+    fontSize: scale(13),
+    fontWeight: '600',
+    color: '#222D31',
+    marginBottom: scale(4),
   },
-  cardTitle: { 
-    fontSize: scale(13), 
-    fontWeight: '600', 
-    color: '#222D31', 
-    marginBottom: scale(4) 
+  cardPricePlain: {
+    fontSize: scale(14),
+    fontWeight: '800',
+    color: '#222D31',
   },
-  cardPricePlain: { 
-    fontSize: scale(14), 
-    fontWeight: '800', 
-    color: '#222D31' 
-  },
-  cardTimestamp: { 
-    fontSize: scale(12), 
-    fontWeight: '700', 
-    color: '#9CA3AF', 
-    textTransform: 'lowercase' 
+  cardTimestamp: {
+    fontSize: scale(12),
+    fontWeight: '700',
+    color: '#9CA3AF',
+    textTransform: 'lowercase',
   },
 
   // --- STATUS & LOADER ---
-  statusBadge: { 
-    paddingHorizontal: 10, 
-    paddingVertical: 4, 
-    borderRadius: 5 
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 5,
   },
-  statusTextPlain: { 
-    fontSize: scale(10), 
-    fontWeight: '700', 
-    textTransform: 'uppercase' 
+  statusTextPlain: {
+    fontSize: scale(10),
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
-  loaderContainer: { 
-    height: scale(200), 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  loaderContainer: {
+    height: scale(200),
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  noResultsContainer: { 
-    width: '100%', 
-    paddingVertical: scale(40), 
-    alignItems: 'center' 
+  noResultsContainer: {
+    width: '100%',
+    paddingVertical: scale(40),
+    alignItems: 'center',
   },
-  noResultsText: { 
-    fontSize: scale(14), 
-    color: '#cfd4da', 
-    fontWeight: '700' 
+  noResultsText: {
+    fontSize: scale(14),
+    color: '#cfd4da',
+    fontWeight: '700',
   },
-  endOfListText: { 
-    textAlign: 'center', 
-    color: '#cfd4da', 
-    fontSize: scale(14), 
-    fontWeight: '700', 
-    marginTop: scale(10), 
-    marginBottom: scale(10) 
+  endOfListText: {
+    textAlign: 'center',
+    color: '#cfd4da',
+    fontSize: scale(14),
+    fontWeight: '700',
+    marginTop: scale(10),
+    marginBottom: scale(10),
   },
 
   // --- ITEM MODAL DETAILS ---
-  modalContainer: { 
-    flex: 1, 
-    backgroundColor: '#FFFFFF' 
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-modalHeader: { 
-  flexDirection: 'row', 
-  alignItems: 'center', 
-  paddingHorizontal: HORIZONTAL_PADDING, 
-  height: scale(60),
-  backgroundColor: '#FFFFFF' // same as Transactions
-},
-  modalHeaderTitle: { 
-  fontSize: scale(19), 
-  fontWeight: '800', 
-  color: '#222D31', 
-  letterSpacing: -1 
-},
-  modalCloseBtn: { 
-    padding: scale(5) 
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: HORIZONTAL_PADDING,
+    height: scale(60),
+    backgroundColor: '#FFFFFF',
   },
-  modalImage: { 
-    width: width, 
-    height: height * 0.4, 
-    resizeMode: 'cover' 
+  modalHeaderTitle: {
+    fontSize: scale(19),
+    fontWeight: '800',
+    color: '#222D31',
+    letterSpacing: -1,
   },
-  modalInfoSection: { 
-    padding: HORIZONTAL_PADDING 
+  modalCloseBtn: { padding: scale(5) },
+  modalImage: {
+    width: width,
+    height: height * 0.4,
+    resizeMode: 'cover',
   },
-  modalRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: scale(10) 
+  modalInfoSection: { padding: HORIZONTAL_PADDING },
+  modalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: scale(10),
   },
-  modalCategory: { 
-    fontSize: scale(12), 
-    fontWeight: '800', 
-    color: '#AF0B01', 
-    textTransform: 'uppercase' 
+  modalCategory: {
+    fontSize: scale(12),
+    fontWeight: '800',
+    color: '#AF0B01',
+    textTransform: 'uppercase',
   },
-  modalTitle: { 
-    fontSize: scale(22), 
-    fontWeight: '700', 
-    color: '#222D31', 
-    marginBottom: scale(5) 
+  modalTitle: {
+    fontSize: scale(22),
+    fontWeight: '700',
+    color: '#222D31',
+    marginBottom: scale(5),
   },
-  modalPrice: { 
-    fontSize: scale(20), 
-    fontWeight: '800', 
-    color: '#222D31', 
-    marginBottom: scale(20) 
+  modalPrice: {
+    fontSize: scale(20),
+    fontWeight: '800',
+    color: '#222D31',
+    marginBottom: scale(20),
   },
-  detailLabel: { 
-    fontSize: scale(14), 
-    fontWeight: '800', 
-    color: '#222D31', 
-    marginBottom: scale(8) 
+  detailLabel: {
+    fontSize: scale(14),
+    fontWeight: '800',
+    color: '#222D31',
+    marginBottom: scale(8),
   },
-  detailValue: { 
-    fontSize: scale(14), 
-    color: '#555', 
-    lineHeight: scale(20), 
-    marginBottom: scale(20) 
+  detailValue: {
+    fontSize: scale(14),
+    color: '#555',
+    lineHeight: scale(20),
+    marginBottom: scale(20),
   },
-  contactRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: scale(12) 
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: scale(12),
   },
-  detailValueContact: { 
-    fontSize: scale(14), 
-    fontWeight: '600', 
-    color: '#222D31', 
-    marginLeft: 8 
+  detailValueContact: {
+    fontSize: scale(14),
+    fontWeight: '600',
+    color: '#222D31',
+    marginLeft: 8,
   },
-  modalFooter: { 
-    position: 'absolute', 
-    bottom: 0, width: '100%', 
-    padding: HORIZONTAL_PADDING, 
-    backgroundColor: '#FFFFFF', 
-    borderTopWidth: 1, 
-    borderTopColor: '#F0F0F0', 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingBottom: Platform.OS === 'ios' ? 30 : 20 
+  modalFooter: {
+    position: 'absolute',
+    bottom: 0, width: '100%',
+    padding: HORIZONTAL_PADDING,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: Platform.OS === 'ios' ? 30 : 20,
   },
-  messageBtn: { 
-    flex: 1, 
-    height: scale(50), 
-    backgroundColor: '#222D31', 
-    borderRadius: 12, 
-    flexDirection: 'row', 
-    justifyContent: 'center', 
-    alignItems: 'center' 
+  messageBtn: {
+    flex: 1,
+    height: scale(50),
+    backgroundColor: '#222D31',
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  messageBtnText: { 
-    color: '#FFFFFF', 
-    fontSize: scale(15), 
-    fontWeight: '800' 
+  messageBtnText: {
+    color: '#FFFFFF',
+    fontSize: scale(15),
+    fontWeight: '800',
   },
 });

@@ -31,7 +31,6 @@ import { chatStyles } from './styles';
 import { transStyles as styles, scale } from '../transactions/styles';
 import { Image } from 'expo-image';
 
-
 // --- TIME LABEL ---
 const formatTimeLabel = (seconds: number): string => {
   const msgDate = new Date(seconds * 1000);
@@ -67,10 +66,8 @@ export default function ChatScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedChatIds, setSelectedChatIds] = useState<string[]>([]);
 
-  // Search state
-const [isSearchVisible] = useState(true);
+  // Search — always visible
   const [searchQuery, setSearchQuery] = useState('');
-const searchBarHeight = useRef(new Animated.Value(52)).current;
   const searchInputRef = useRef<TextInput>(null);
 
   // Tab fade
@@ -86,8 +83,6 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
     const interval = setInterval(() => setTick((t) => t + 1), 60000);
     return () => clearInterval(interval);
   }, []);
-
-
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -198,12 +193,12 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
 
   return (
     <SafeAreaView
-      style={[styles.container, isSelectionMode && { backgroundColor: '#AF0B01' }]}
+      style={[styles.container, { backgroundColor: '#F5F5F5' }, isSelectionMode && { backgroundColor: '#AF0B01' }]}
     >
       <StatusBar barStyle={isSelectionMode ? 'light-content' : 'dark-content'} />
 
       {/* TOP NAV */}
-      <View style={[styles.topNav, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
+      <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
         {isSelectionMode && (
           <TouchableOpacity
             onPress={() => { setIsSelectionMode(false); setSelectedChatIds([]); }}
@@ -223,34 +218,33 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
           </TouchableOpacity>
         ) : (
           <TouchableOpacity onPress={() => setIsSelectionMode(true)}>
-  <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
-</TouchableOpacity>
+            <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
+          </TouchableOpacity>
         )}
       </View>
 
-      {/* SEARCH BAR (animated height) */}
-      {isSearchVisible && (
+      {/* SEARCH BAR — same original design, just taller */}
+      {!isSelectionMode && (
         <View
           style={{
-            height: 52,
-            overflow: 'hidden',
-            backgroundColor: '#FFF',
             paddingHorizontal: scale(16),
-            justifyContent: 'center',
-
+            paddingBottom: scale(10),
+            backgroundColor: '#F5F5F5',
           }}
         >
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: '#F3F4F6',
+              backgroundColor: '#ffffff',
               borderRadius: 10,
+              borderColor: '#cfd4da',
+              borderWidth: 1,
               paddingHorizontal: scale(10),
-              height: 38,
+              height: scale(44),
             }}
           >
-            <Ionicons name="search-outline" size={16} color="#9CA3AF" style={{ marginRight: 6 }} />
+            <Ionicons name="search-outline" size={16} color="#cfd4da" style={{ marginRight: 6 }} />
             <TextInput
               ref={searchInputRef}
               value={searchQuery}
@@ -277,7 +271,7 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
 
       {/* TABS — hidden in selection mode */}
       {!isSelectionMode && (
-        <View style={{ flexDirection: 'row', paddingHorizontal: scale(10), backgroundColor: '#FFF' }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: scale(10), backgroundColor: '#F5F5F5' }}>
           {(['listing', 'renting'] as ChatTab[]).map((tab) => (
             <TouchableOpacity
               key={tab}
@@ -305,7 +299,7 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
       )}
 
       {/* LIST */}
-      <Animated.View style={{ flex: 1, backgroundColor: '#FFF', opacity: fadeAnim }}>
+      <Animated.View style={{ flex: 1, backgroundColor: '#F5F5F5', opacity: fadeAnim }}>
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center' }}>
             <ActivityIndicator size="large" color="#AF0B01" />
@@ -332,13 +326,18 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
                       ? toggleChatSelection(item.id)
                       : router.push({ pathname: '../../message/convo', params: { chatId: item.id } })
                   }
-                  style={[
-                    chatStyles.chatItem,
-                    isSelected && { borderColor: '#AF0B01', backgroundColor: '#FFF9F9' },
-                  ]}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    padding: 15,
+                    backgroundColor: isSelected ? '#FFF4F4' : '#FFFFFF',
+                    borderRadius: 12,
+                    marginBottom: 10,
+                    // No borderColor — rounded white card on #F5F5F5 background
+                  }}
                 >
-                  {/* AVATAR */}
-                  <View style={chatStyles.avatar}>
+                  {/* AVATAR with unread dot */}
+                  <View style={{ marginRight: 15 }}>
                     {item.displayPhoto ? (
                       <Image
                         source={{ uri: item.displayPhoto }}
@@ -360,6 +359,21 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
                         </Text>
                       </View>
                     )}
+                    {item.isUnread && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          bottom: 1,
+                          right: 1,
+                          width: 12,
+                          height: 12,
+                          borderRadius: 6,
+                          backgroundColor: '#AF0B01',
+                          borderWidth: 2,
+                          borderColor: '#FFFFFF',
+                        }}
+                      />
+                    )}
                   </View>
 
                   {/* CHAT INFO */}
@@ -380,7 +394,7 @@ const searchBarHeight = useRef(new Animated.Value(52)).current;
                           style={{
                             fontSize: scale(11),
                             fontWeight: '700',
-                            color: item.isUnread ? '#222D31' : '#9CA3AF',
+                            color: item.isUnread ? '#AF0B01' : '#9CA3AF',
                             flexShrink: 0,
                           }}
                         >

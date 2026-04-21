@@ -44,7 +44,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const user = auth.currentUser;
 
-  // LIVE PROFILE LISTENER — replaces old getDoc fetchUser
   useEffect(() => {
     if (!user) return;
     setUserEmail(user.email || '');
@@ -163,14 +162,14 @@ export default function HomeScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFF' }}>
-      <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#F5F5F5' }]}>
         <StatusBar
           barStyle={isDrawerOpen || selectedItem ? 'light-content' : 'dark-content'}
         />
         <ModalItemDetails selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
 
-        <View style={styles.topNav}>
+        <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }]}>
           <TouchableOpacity onPress={() => toggleDrawer(true)}>
             <Ionicons name="menu-outline" size={scale(28)} color="#222D31" />
           </TouchableOpacity>
@@ -178,7 +177,6 @@ export default function HomeScreen() {
             Cross<Text style={{ color: '#AF0B01' }}>Rent</Text>
           </Text>
 
-          {/* PROFILE AVATAR — navigates to profile, live base64 pic */}
           <TouchableOpacity
             onPress={() => router.push('/profile' as any)}
             style={[styles.profileCircle, { overflow: 'hidden' }]}
@@ -243,7 +241,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.searchSection}>
-            <View style={styles.searchBar}>
+            <View style={[styles.searchBar, { backgroundColor: '#FFFFFF' }]}>
               <Ionicons
                 name="search-outline"
                 size={scale(20)}

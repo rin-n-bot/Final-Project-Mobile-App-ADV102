@@ -191,11 +191,11 @@ export default function MyListingScreen() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+        <View style={{ flex: 1, backgroundColor: COLORS.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
             <StatusBar barStyle="dark-content" backgroundColor="white" translucent={true} />
-            <SafeAreaView style={{ flex: 0, backgroundColor: '#FFFFFF' }} /> 
+            <SafeAreaView style={{ flex: 0, backgroundColor: COLORS.background }} /> 
 
-            <View style={{ backgroundColor: '#FFF' }}>
+            <View style={{ backgroundColor: COLORS.background }}>
                 <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -225,7 +225,7 @@ export default function MyListingScreen() {
                 </View>
 
                 {/* Categories Accordion */}
-                <View style={{ backgroundColor: '#FFF', paddingHorizontal: scale(20) }}>
+                <View style={{ backgroundColor: COLORS.background, paddingHorizontal: scale(20) }}>
                     <TouchableOpacity
                         onPress={toggleCategory}
                         activeOpacity={0.7}
@@ -270,7 +270,7 @@ export default function MyListingScreen() {
                                             width: pillWidth,
                                             paddingVertical: scale(12),
                                             borderRadius: scale(12),
-                                            borderWidth: 1.5,
+                                            borderWidth: 1,
                                             borderColor: isActive ? '#222D31' : '#cfd4da',
                                             backgroundColor: isActive ? '#222D31' : '#FFF',
                                             alignItems: 'center',
@@ -293,7 +293,7 @@ export default function MyListingScreen() {
                 </View>
             </View>
 
-            <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+            <View style={{ flex: 1, backgroundColor: COLORS.background }}>
                 {loading ? (
                     <View style={{ flex: 1, justifyContent: 'center' }}>
                         <ActivityIndicator color={COLORS.accent} size="large" />

@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,13 +24,13 @@ import {
   doc,
   updateDoc,
   getDoc,
+  arrayUnion,
 } from 'firebase/firestore';
 import { chatStyles } from '../(tabs)/chat/styles';
 import { Image } from 'expo-image';
 import { scale } from '../(tabs)/transactions/styles';
 
 // --- MESSENGER-STYLE TIME DIVIDER LOGIC ---
-// Show a time divider when gap between consecutive messages >= 15 minutes
 const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
 
 const formatDividerTime = (seconds: number): string => {
@@ -70,26 +71,40 @@ const formatDividerTime = (seconds: number): string => {
   );
 };
 
-// Build a flat list of items: either a message or a time divider
 type MessageItem =
-  | { type: 'message'; id: string; data: any }
+  | { type: 'message'; id: string; data: any; showAvatar: boolean }
   | { type: 'divider'; id: string; label: string };
 
+// Build items with messenger-style avatar suppression for stacked messages.
+// Since FlatList is inverted (index 0 = newest), "next" in the array = older message.
+// Avatar is shown on a received message only if the message immediately below it
+// (i.e. the next item in the descending array, which visually appears above) is from
+// a different sender OR is a divider / doesn't exist.
 const buildMessageItems = (messages: any[]): MessageItem[] => {
-  // messages are already in descending order (inverted FlatList)
-  // We need to inject dividers between messages with large gaps.
-  // Since FlatList is inverted, index 0 = newest. We work in display order (reversed).
   const items: MessageItem[] = [];
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    items.push({ type: 'message', id: msg.id, data: msg });
+    const prevMsg = messages[i - 1]; // visually below (newer) in inverted list
+
+    // Determine if avatar should show for this received message.
+    // Show avatar when the message above it visually (prevMsg, which is newer) is from
+    // a different sender, meaning this is the bottom-most bubble in a stack.
+    const isLastInStack =
+      !prevMsg || prevMsg.senderId !== msg.senderId;
+
+    items.push({
+      type: 'message',
+      id: msg.id,
+      data: msg,
+      showAvatar: isLastInStack,
+    });
 
     const nextMsg = messages[i + 1];
     if (nextMsg) {
       const currTime = (msg.createdAt?.seconds ?? 0) * 1000;
       const nextTime = (nextMsg.createdAt?.seconds ?? 0) * 1000;
-      const gap = currTime - nextTime; // curr is newer, next is older (descending list)
+      const gap = currTime - nextTime;
       if (gap >= TIME_GAP_THRESHOLD_MS && nextMsg.createdAt?.seconds) {
         items.push({
           type: 'divider',
@@ -98,7 +113,7 @@ const buildMessageItems = (messages: any[]): MessageItem[] => {
         });
       }
     } else {
-      // After the oldest message, always show its time
+      // Always show time after the oldest message
       if (msg.createdAt?.seconds) {
         items.push({
           type: 'divider',
@@ -141,8 +156,10 @@ export default function MessageScreen() {
       try {
         const chatSnap = await getDoc(doc(db, 'chats', chatId as string));
         if (chatSnap.exists()) {
-          const participants = chatSnap.data().participants;
+          const data = chatSnap.data();
+          const participants = data.participants;
           const otherId = participants.find((id: string) => id !== user.uid);
+
           if (otherId) {
             const uSnap = await getDoc(doc(db, 'users', otherId));
             if (uSnap.exists()) setActiveChatEmail(uSnap.data().email);
@@ -151,6 +168,15 @@ export default function MessageScreen() {
             if (profileSnap.exists()) {
               setRecipientPhoto(profileSnap.data().profilePicUrl || null);
             }
+          }
+
+          // MARK AS READ: add current user's uid to readBy array
+          // This clears the unread highlight on the chat list screen
+          const readBy: string[] = data.readBy ?? [];
+          if (!readBy.includes(user.uid)) {
+            await updateDoc(doc(db, 'chats', chatId as string), {
+              readBy: arrayUnion(user.uid),
+            });
           }
         }
       } catch (e) {
@@ -183,10 +209,12 @@ export default function MessageScreen() {
         senderEmail: user?.email,
         createdAt: serverTimestamp(),
       });
+      // When I send, reset readBy to only me (others haven't read it yet)
       await updateDoc(doc(db, 'chats', chatId as string), {
         lastMessage: messageToSend,
         lastSenderEmail: user?.email,
         updatedAt: serverTimestamp(),
+        readBy: [user?.uid],
       });
     } catch (e) {
       console.error(e);
@@ -215,7 +243,7 @@ export default function MessageScreen() {
               <Ionicons name="arrow-back" size={28} color="#FFF" />
             </TouchableOpacity>
 
-            {/* RECIPIENT AVATAR in header — same bg as bubble avatar (#222D31) */}
+            {/* RECIPIENT AVATAR — same bg as bubble avatar */}
             <View
               style={{
                 width: 34,
@@ -266,12 +294,7 @@ export default function MessageScreen() {
                 // TIME DIVIDER
                 if (item.type === 'divider') {
                   return (
-                    <View
-                      style={{
-                        alignItems: 'center',
-                        marginVertical: 10,
-                      }}
-                    >
+                    <View style={{ alignItems: 'center', marginVertical: 15 }}>
                       <Text
                         style={{
                           fontSize: 11,
@@ -293,56 +316,72 @@ export default function MessageScreen() {
                 // MESSAGE BUBBLE
                 const msg = item.data;
                 const isMine = msg.senderId === auth.currentUser?.uid;
+                const showAvatar = item.showAvatar;
 
+                // Spacing: tighter between stacked messages from same sender
                 return (
                   <View
                     style={{
                       flexDirection: isMine ? 'row-reverse' : 'row',
                       alignItems: 'flex-end',
-                      marginVertical: 3,
+                      marginVertical: 10,
                     }}
                   >
-                    {/* RECIPIENT AVATAR beside bubble */}
+                    {/* RECIPIENT AVATAR — only shown on last bubble in a stack */}
                     {!isMine && (
                       <View
                         style={{
                           width: 28,
                           height: 28,
                           borderRadius: 14,
-                          backgroundColor: '#222D31',
+                          marginRight: 8,
+                          flexShrink: 0,
+                          // Reserve space even when avatar hidden, so bubbles align
+                          opacity: showAvatar ? 1 : 0,
+                          overflow: 'hidden',
+                          backgroundColor: showAvatar ? '#222D31' : 'transparent',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          marginRight: 8,
-                          overflow: 'hidden',
-                          flexShrink: 0,
                         }}
                       >
-                        {recipientPhoto ? (
-                          <Image
-                            source={{ uri: recipientPhoto }}
-                            style={{ width: 28, height: 28, borderRadius: 14 }}
-                          />
-                        ) : (
-                          <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '800' }}>
-                            {msg.senderEmail?.charAt(0).toUpperCase()}
-                          </Text>
+                        {showAvatar && (
+                          recipientPhoto ? (
+                            <Image
+                              source={{ uri: recipientPhoto }}
+                              style={{ width: 28, height: 28, borderRadius: 14 }}
+                            />
+                          ) : (
+                            <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '800' }}>
+                              {msg.senderEmail?.charAt(0).toUpperCase()}
+                            </Text>
+                          )
                         )}
                       </View>
                     )}
 
-                    {/* BUBBLE — capsule shape, no word break */}
+                    {/* BUBBLE — capsule, no border, shadow for their bubbles */}
                     <View
                       style={{
                         maxWidth: '72%',
                         paddingHorizontal: 16,
                         paddingVertical: 10,
                         borderRadius: 22,
-                        backgroundColor: isMine ? '#222D31' : '#ffffff',
-                        borderWidth: isMine ? 0 : 1.5,
-                        borderColor: '#cfd4da',
-                        // Messenger-style: flatten the corner on sender side
                         borderBottomRightRadius: isMine ? 4 : 22,
                         borderBottomLeftRadius: isMine ? 22 : 4,
+                        backgroundColor: isMine ? '#222D31' : '#FFFFFF',
+                        // Shadow for received bubbles (replaces border)
+                        ...(isMine
+                          ? {}
+                          : Platform.OS === 'ios'
+                          ? {
+                              shadowColor: '#000',
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.08,
+                              shadowRadius: 4,
+                            }
+                          : {
+                              elevation: 2,
+                            }),
                       }}
                     >
                       <Text

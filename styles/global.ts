@@ -23,7 +23,7 @@ export const COLORS = {
   textSecondary: '#6B7280',
   textMuted: '#9CA3AF',
   border: '#cfd4da',
-  background: '#FFFFFF',
+  background: '#f5f5f5',
   lightBackground: '#F0F0F0',
 };
 

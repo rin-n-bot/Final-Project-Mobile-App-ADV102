@@ -3,7 +3,7 @@ import { StyleSheet, Platform, StatusBar } from 'react-native';
 const s = StyleSheet.create({
   mainWrapper: { 
     flex: 1, 
-    backgroundColor: '#FFF' 
+    backgroundColor: '#f5f5f5' 
   },
   redHeader: { 
     backgroundColor: '#AF0B01', 
@@ -40,7 +40,7 @@ const s = StyleSheet.create({
   },
   input: { 
     backgroundColor: '#ffffff', 
-    borderWidth: 1.5, 
+    borderWidth: 1, 
     borderColor: '#cfd4da', 
     borderRadius: 10, 
     padding: 12, 
@@ -67,7 +67,8 @@ const s = StyleSheet.create({
   },
   chipInactive: { 
     backgroundColor: '#FFF', 
-    borderColor: '#cfd4da' 
+    borderColor: '#cfd4da',
+      borderWidth: 1,
   },
   chipActive: { 
     backgroundColor: '#222D31', 

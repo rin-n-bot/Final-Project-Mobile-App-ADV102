@@ -6,7 +6,7 @@ export const scale = (size: number) => (width / 375) * size;
 export const profileStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
 
@@ -108,8 +108,7 @@ export const profileStyles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#cfd4da',
+
     borderRadius: scale(12),
     paddingVertical: scale(14),
     alignItems: 'center',
@@ -146,8 +145,8 @@ export const profileStyles = StyleSheet.create({
   infoCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: scale(12),
-    borderWidth: 1.5,
-    borderColor: '#cfd4da',
+    borderWidth: 1,
+    borderColor: '#ffffff',
     overflow: 'hidden',
   },
   infoRow: {

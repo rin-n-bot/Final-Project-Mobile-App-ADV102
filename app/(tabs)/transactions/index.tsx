@@ -91,7 +91,6 @@ export default function TransactionsScreen() {
     return unsubscribe;
   }, [user]);
 
-  // EXIT SELECTION MODE — also clears selected
   const exitSelectionMode = () => {
     setIsSelectionMode(false);
     setSelectedIds([]);
@@ -179,7 +178,7 @@ export default function TransactionsScreen() {
         onPress={() => (isSelectionMode ? toggleSelection(item.id) : null)}
         style={[
           styles.card,
-          isSelected && { borderColor: '#AF0B01', backgroundColor: '#FFF9F9' },
+          isSelected && { backgroundColor: '#FFF9F9' },
         ]}
       >
         <View style={styles.cardHeader}>
@@ -269,38 +268,38 @@ export default function TransactionsScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, isSelectionMode && { backgroundColor: '#AF0B01' }]}
+      style={[styles.container, { backgroundColor: '#F5F5F5' }, isSelectionMode && { backgroundColor: '#AF0B01' }]}
     >
       <StatusBar barStyle={isSelectionMode ? 'light-content' : 'dark-content'} />
 
       {/* TOP NAV */}
-<View style={[styles.topNav, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
-  {isSelectionMode ? (
-    <TouchableOpacity onPress={exitSelectionMode} style={{ marginRight: scale(12) }}>
-      <Ionicons name="close-outline" size={scale(26)} color="#FFF" />
-    </TouchableOpacity>
-  ) : null}
+      <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
+        {isSelectionMode ? (
+          <TouchableOpacity onPress={exitSelectionMode} style={{ marginRight: scale(12) }}>
+            <Ionicons name="close-outline" size={scale(26)} color="#FFF" />
+          </TouchableOpacity>
+        ) : null}
 
-  <Text
-    style={[
-      styles.logoMini,
-      { flex: 1 },
-      isSelectionMode && { color: '#FFF' },
-    ]}
-  >
-    {isSelectionMode ? `${selectedIds.length} Selected` : 'Transactions'}
-  </Text>
+        <Text
+          style={[
+            styles.logoMini,
+            { flex: 1 },
+            isSelectionMode && { color: '#FFF' },
+          ]}
+        >
+          {isSelectionMode ? `${selectedIds.length} Selected` : 'Transactions'}
+        </Text>
 
-  {isSelectionMode ? (
-    <TouchableOpacity onPress={handleDeleteSelected}>
-      <Ionicons name="trash-outline" size={scale(24)} color="#FFF" />
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity onPress={() => setIsSelectionMode(true)}>
-      <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
-    </TouchableOpacity>
-  )}
-</View>
+        {isSelectionMode ? (
+          <TouchableOpacity onPress={handleDeleteSelected}>
+            <Ionicons name="trash-outline" size={scale(24)} color="#FFF" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => setIsSelectionMode(true)}>
+            <Text style={{ fontWeight: '700', color: '#AF0B01' }}>Select</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* TABS */}
       {!isSelectionMode && (
@@ -308,7 +307,7 @@ export default function TransactionsScreen() {
           style={{
             flexDirection: 'row',
             paddingHorizontal: scale(10),
-            backgroundColor: '#FFF',
+            backgroundColor: '#F5F5F5',
           }}
         >
           {(['lending', 'borrowing', 'completed', 'returned'] as ViewMode[]).map((mode) => (
@@ -338,7 +337,7 @@ export default function TransactionsScreen() {
       )}
 
       {/* LIST */}
-      <Animated.View style={{ flex: 1, backgroundColor: '#FFF', opacity: fadeAnim }}>
+      <Animated.View style={{ flex: 1, backgroundColor: '#F5F5F5', opacity: fadeAnim }}>
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center' }}>
             <ActivityIndicator color="#AF0B01" size="large" />

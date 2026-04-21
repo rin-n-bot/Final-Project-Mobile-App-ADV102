@@ -37,7 +37,7 @@ export const listingStyles = StyleSheet.create({
     flexDirection: 'row',
     padding: scale(15), // Matching scale(15) from Transaction card
     borderWidth: 1.5,
-    borderColor: '#cfd4da', // The specific border color you wanted
+    borderColor: '#ffffff', // The specific border color you wanted
     // Simplified shadows to match the cleaner transaction look
     elevation: 0, 
     shadowColor: 'transparent', 
