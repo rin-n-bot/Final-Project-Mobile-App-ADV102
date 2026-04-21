@@ -259,7 +259,14 @@ export default function HomeScreen() {
           </View>
 
           <Text style={styles.sectionLabel}>Categories</Text>
-          <View style={styles.categoryGrid}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ 
+              paddingHorizontal: scale(20),
+              paddingBottom: scale(20)
+            }}
+          >
             {dbCategories.map((cat) => (
               <CategoryCard
                 key={cat.id}
@@ -268,7 +275,7 @@ export default function HomeScreen() {
                 onPress={() => handleCategoryPress(cat.id)}
               />
             ))}
-          </View>
+          </ScrollView>
 
           <Text style={styles.sectionLabel}>
             {searchQuery.length > 0

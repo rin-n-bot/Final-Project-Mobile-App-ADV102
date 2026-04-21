@@ -269,7 +269,7 @@ export default function MyListingScreen() {
                                         style={{
                                             width: pillWidth,
                                             paddingVertical: scale(12),
-                                            borderRadius: scale(12),
+                                            borderRadius: scale(25),
                                             borderWidth: 1,
                                             borderColor: isActive ? '#222D31' : '#cfd4da',
                                             backgroundColor: isActive ? '#222D31' : '#FFF',

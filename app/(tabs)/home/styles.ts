@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#cfd4da',
+    borderColor: '#ffffff',
     backgroundColor: '#FFFFFF',
   },
   searchInput: {
@@ -139,7 +139,8 @@ export const styles = StyleSheet.create({
     fontSize: scale(15),
     fontWeight: '800',
     color: '#222D31',
-    marginBottom: scale(15),
+    marginTop: scale(4),
+    marginBottom: scale(12),
   },
   categoryGrid: {
     flexDirection: 'row',
@@ -269,14 +270,14 @@ export const styles = StyleSheet.create({
   // --- ITEM MODAL DETAILS ---
   modalContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: HORIZONTAL_PADDING,
     height: scale(60),
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
   },
   modalHeaderTitle: {
     fontSize: scale(19),
@@ -316,7 +317,7 @@ export const styles = StyleSheet.create({
     marginBottom: scale(20),
   },
   detailLabel: {
-    fontSize: scale(14),
+    fontSize: scale(16),
     fontWeight: '800',
     color: '#222D31',
     marginBottom: scale(8),
@@ -333,7 +334,7 @@ export const styles = StyleSheet.create({
     marginBottom: scale(12),
   },
   detailValueContact: {
-    fontSize: scale(14),
+    fontSize: scale(15),
     fontWeight: '600',
     color: '#222D31',
     marginLeft: 8,
@@ -363,4 +364,41 @@ export const styles = StyleSheet.create({
     fontSize: scale(15),
     fontWeight: '800',
   },
+  infoCard: {
+  backgroundColor: '#FFFFFF',
+  borderRadius: scale(12),
+  borderWidth: 1,
+  borderColor: '#ffffff',
+  overflow: 'hidden',
+},
+
+infoRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: scale(15),
+  paddingVertical: scale(14),
+  borderBottomWidth: 1,
+  borderBottomColor: '#F0F0F0',
+},
+
+infoRowLast: {
+  borderBottomWidth: 0,
+},
+
+infoTextBlock: {
+  flex: 1,
+},
+
+infoRowLabel: {
+  fontSize: scale(13),
+  fontWeight: '800',
+  color: '#9CA3AF',
+},
+
+infoRowValue: {
+  fontSize: scale(16),
+  fontWeight: '600',
+  color: '#222D31',
+  marginTop: scale(2),
+},
 });

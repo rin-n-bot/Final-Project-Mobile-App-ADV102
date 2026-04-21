@@ -8,7 +8,7 @@ export const chatStyles = StyleSheet.create({
   },
   contentArea: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: '#f5f5f5',
   },
   redHeader: {
     backgroundColor: '#AF0B01',
@@ -59,7 +59,7 @@ export const chatStyles = StyleSheet.create({
     marginRight: 15,
   },
   chatInfo: { flex: 1 },
-  userName: { fontSize: 15, fontWeight: '700', color: '#222D31' },
+  userName: { fontSize: 16, fontWeight: '700', color: '#222D31' },
   lastMsg: { fontSize: 15, color: '#666', marginTop: 2 },
 
   messageList: { paddingHorizontal: 15, paddingVertical: 20, marginTop: 0 },

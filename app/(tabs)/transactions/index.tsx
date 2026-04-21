@@ -21,6 +21,7 @@ import {
   Alert,
   StatusBar,
   Animated,
+  Modal,
 } from 'react-native';
 import { auth, db } from '../../../firebase';
 import { updateTransactionStatus } from '../../../services/transactionService';
@@ -50,6 +51,10 @@ export default function TransactionsScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('lending');
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // New state for Approval Disclaimer
+  const [showApproveDisclaimer, setShowApproveDisclaimer] = useState(false);
+  const [pendingApprovalData, setPendingApprovalData] = useState<{id: string, itemId: string} | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -142,6 +147,20 @@ export default function TransactionsScreen() {
     );
   };
 
+  const handleConfirmReturn = (id: string, itemId: string) => {
+    Alert.alert(
+      'Confirm Return',
+      'Are you sure the item has been returned safely? This will complete the transaction.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Confirm', 
+          onPress: () => updateTransactionStatus(id, itemId, 'completed') 
+        }
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: Transaction }) => {
     const isOwner = item.ownerId === user?.uid;
     const isSelected = selectedIds.includes(item.id);
@@ -221,7 +240,10 @@ export default function TransactionsScreen() {
                       styles.messageBtn,
                       { backgroundColor: '#222D31', flex: 1, height: scale(40) },
                     ]}
-                    onPress={() => updateTransactionStatus(item.id, item.itemId, 'rented')}
+                    onPress={() => {
+                      setPendingApprovalData({ id: item.id, itemId: item.itemId });
+                      setShowApproveDisclaimer(true);
+                    }}
                   >
                     <Text style={styles.messageBtnText}>Approve</Text>
                   </TouchableOpacity>
@@ -243,7 +265,7 @@ export default function TransactionsScreen() {
                     styles.messageBtn,
                     { backgroundColor: '#222D31', flex: 1, height: scale(40) },
                   ]}
-                  onPress={() => updateTransactionStatus(item.id, item.itemId, 'completed')}
+                  onPress={() => handleConfirmReturn(item.id, item.itemId)}
                 >
                   <Text style={styles.messageBtnText}>Confirm Return</Text>
                 </TouchableOpacity>
@@ -359,6 +381,49 @@ export default function TransactionsScreen() {
           />
         )}
       </Animated.View>
+
+      {/* APPROVE DISCLAIMER MODAL */}
+      <Modal
+        visible={showApproveDisclaimer}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowApproveDisclaimer(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
+          <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Notice</Text>
+            <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
+              Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
+              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.
+            </Text>
+            
+            <View style={{ flexDirection: 'row', width: '100%', gap: scale(10) }}>
+              <TouchableOpacity 
+                style={{ flex: 1, paddingVertical: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center' }} 
+                onPress={() => {
+                  setShowApproveDisclaimer(false);
+                  setPendingApprovalData(null);
+                }}
+              >
+                <Text style={{ color: '#4B5563', fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
+                onPress={() => {
+                  if (pendingApprovalData) {
+                    updateTransactionStatus(pendingApprovalData.id, pendingApprovalData.itemId, 'rented');
+                  }
+                  setShowApproveDisclaimer(false);
+                  setPendingApprovalData(null);
+                }}
+              >
+                <Text style={{ color: '#FFF', fontWeight: '700' }}>I Agree</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

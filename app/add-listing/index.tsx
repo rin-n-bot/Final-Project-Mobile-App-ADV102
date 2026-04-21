@@ -32,7 +32,7 @@ export default function AddScreen() {
   const [status, setStatus] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const categories = ['Laptop', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
+  const categories = ['Laptops', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
   const statusOptions = ['Available', 'Reserved', 'Rented'];
   const durationOptions = ['Hour', 'Day', 'Week', 'Month'];
 

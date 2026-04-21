@@ -56,8 +56,9 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
   const isOwner = user?.uid === selectedItem?.ownerId;
 
   const [ownerPhoto, setOwnerPhoto] = useState<string | null>(null);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch owner profile pic when modal opens
   useEffect(() => {
     if (!selectedItem?.ownerId) return;
     setOwnerPhoto(null);
@@ -66,7 +67,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
     });
   }, [selectedItem?.ownerId]);
 
-  const handleAction = async () => {
+  const handleActionTrigger = () => {
     if (!user) {
       Alert.alert('Authentication', 'Please log in to continue.');
       return;
@@ -86,12 +87,17 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       return;
     }
 
+    setShowDisclaimer(true);
+  };
+
+  const processRentalRequest = async () => {
+    setLoading(true);
     try {
       const transactionsRef = collection(db, 'transactions');
       const qCheck = query(
         transactionsRef,
         where('itemId', '==', selectedItem.id),
-        where('renterId', '==', user.uid),
+        where('renterId', '==', user!.uid),
         where('status', 'in', ['requested', 'rented'])
       );
       const existingRequests = await getDocs(qCheck);
@@ -100,12 +106,14 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
           'Notice',
           'You already have an active request or an ongoing rental for this item. Check your Transactions.'
         );
+        setShowDisclaimer(false);
+        setLoading(false);
         return;
       }
 
       await handleRentRequest(selectedItem, user);
 
-      const participants = [user.uid, selectedItem.ownerId].sort();
+      const participants = [user!.uid, selectedItem.ownerId].sort();
       const chatsRef = collection(db, 'chats');
       const q = query(chatsRef, where('participants', '==', participants));
       const chatQuerySnapshot = await getDocs(q);
@@ -115,7 +123,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         const newChatDoc = await addDoc(chatsRef, {
           participants,
           lastMessage: `Rental Request: ${selectedItem.name}`,
-          lastSenderEmail: user.email,
+          lastSenderEmail: user!.email,
           updatedAt: serverTimestamp(),
         });
         chatId = newChatDoc.id;
@@ -127,24 +135,25 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       const requestMessage =
         `📢 NEW RENTAL REQUEST\n\n` +
         `Item: ${selectedItem.name}\n` +
-        `Renter: ${user.email}\n` +
+        `Renter: ${user!.email}\n` +
         `Date/Time: ${timestamp}\n\n` +
         `Check status in Transactions.`;
 
       await addDoc(collection(db, 'chats', chatId, 'messages'), {
         text: requestMessage,
-        senderId: user.uid,
-        senderEmail: user.email,
+        senderId: user!.uid,
+        senderEmail: user!.email,
         createdAt: serverTimestamp(),
         isSystem: true,
       });
 
       await updateDoc(doc(db, 'chats', chatId), {
         lastMessage: `Requested: ${selectedItem.name}`,
-        lastSenderEmail: user.email,
+        lastSenderEmail: user!.email,
         updatedAt: serverTimestamp(),
       });
 
+      setShowDisclaimer(false);
       Alert.alert('Success', 'Rental request sent to owner!');
       setSelectedItem(null);
 
@@ -155,215 +164,223 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
     } catch (error) {
       console.error('Action Error: ', error);
       Alert.alert('Error', 'Failed to process request.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Modal
-      visible={selectedItem !== null}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={() => setSelectedItem(null)}
-    >
-      <SafeAreaView style={styles.modalContainer}>
+    <View>
+      <Modal
+        visible={selectedItem !== null}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setSelectedItem(null)}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          {/* HEADER */}
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setSelectedItem(null)} style={{ padding: scale(5) }}>
+              <Ionicons name="arrow-back" size={scale(24)} color="#222D31" />
+            </TouchableOpacity>
+            <Text style={[styles.modalHeaderTitle, { flex: 1, marginLeft: scale(15) }]}>
+              Item Details
+            </Text>
+            <View style={{ width: scale(24) }} />
+          </View>
 
-        {/* HEADER */}
-        <View style={styles.modalHeader}>
-          <TouchableOpacity
-            onPress={() => setSelectedItem(null)}
-            style={{ padding: scale(5) }}
-          >
-            <Ionicons name="arrow-back" size={scale(24)} color="#222D31" />
-          </TouchableOpacity>
-          <Text style={[styles.modalHeaderTitle, { flex: 1, marginLeft: scale(15) }]}>
-            Item Details
-          </Text>
-          <View style={{ width: scale(24) }} />
-        </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+            <Image
+              source={{ uri: selectedItem?.imageUrl || selectedItem?.image }}
+              style={styles.modalImage}
+            />
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
-        >
-          <Image
-            source={{ uri: selectedItem?.imageUrl || selectedItem?.image }}
-            style={styles.modalImage}
-          />
-
-          <View style={styles.modalInfoSection}>
-
-            {/* CATEGORY + STATUS */}
-            <View style={styles.modalRow}>
-              <Text style={styles.modalCategory}>{selectedItem?.category}</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor:
-                      selectedItem?.status === 'Available' ||
-                      selectedItem?.status === 'pending'
-                        ? '#E8F5E9'
-                        : '#FFEBEE',
-                  },
-                ]}
-              >
-                <Text
+            <View style={styles.modalInfoSection}>
+              {/* CATEGORY + STATUS */}
+              <View style={styles.modalRow}>
+                <Text style={styles.modalCategory}>{selectedItem?.category}</Text>
+                <View
                   style={[
-                    styles.statusTextPlain,
+                    styles.statusBadge,
                     {
-                      color:
-                        selectedItem?.status === 'Available' ||
-                        selectedItem?.status === 'pending'
-                          ? '#27AE60'
-                          : '#AF0B01',
+                      backgroundColor:
+                        selectedItem?.status === 'Available' || selectedItem?.status === 'pending'
+                          ? '#E8F5E9'
+                          : '#FFEBEE',
                     },
                   ]}
                 >
-                  {selectedItem?.status}
-                </Text>
-              </View>
-            </View>
-
-            {/* TITLE */}
-            <Text style={styles.modalTitle}>
-              {selectedItem?.name || selectedItem?.title}
-            </Text>
-
-            {/* PRICE */}
-            <View
-              style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: scale(15) }}
-            >
-              <Text style={[styles.modalPrice, { marginBottom: 0 }]}>
-                {selectedItem?.price}
-              </Text>
-              {selectedItem?.rentalPeriod && (
-                <Text style={[styles.modalPrice, { marginBottom: 0 }]}>
-                  {' '}/ {selectedItem.rentalPeriod}
-                </Text>
-              )}
-            </View>
-
-            <View style={[styles.divider, { marginBottom: scale(20) }]} />
-
-            <View style={{ gap: scale(18) }}>
-
-              {/* OWNER — with profile avatar */}
-              <View>
-                <Text style={styles.detailLabel}>Owner</Text>
-                <View style={[styles.contactRow, { alignItems: 'center' }]}>
-                  {/* OWNER AVATAR */}
-                  <View
-                    style={{
-                      width: scale(32),
-                      height: scale(32),
-                      borderRadius: scale(16),
-                      backgroundColor: '#222D31',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: scale(10),
-                      overflow: 'hidden',
-                    }}
+                  <Text
+                    style={[
+                      styles.statusTextPlain,
+                      {
+                        color:
+                          selectedItem?.status === 'Available' || selectedItem?.status === 'pending'
+                            ? '#27AE60'
+                            : '#AF0B01',
+                      },
+                    ]}
                   >
-                    {ownerPhoto ? (
-                      <Image
-                        source={{ uri: ownerPhoto }}
-                        style={{ width: scale(32), height: scale(32), borderRadius: scale(16) }}
-                      />
-                    ) : (
-                      <Text style={{ color: '#FFF', fontWeight: '800', fontSize: scale(12) }}>
-                        {selectedItem?.ownerEmail?.charAt(0).toUpperCase() ?? '?'}
-                      </Text>
-                    )}
-                  </View>
-                  <Text style={styles.detailValueContact}>
-                    {selectedItem?.ownerEmail || 'Not provided'}
+                    {selectedItem?.status}
                   </Text>
                 </View>
               </View>
 
-              {/* DESCRIPTION */}
-              <View>
-                <Text style={styles.detailLabel}>Description</Text>
-                <View style={[styles.contactRow, { alignItems: 'flex-start' }]}>
-                  <Ionicons
-                    name="document-text-outline"
-                    size={scale(16)}
-                    color="#AF0B01"
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text
-                    style={[styles.detailValueContact, { fontWeight: '600', color: '#222D31' }]}
-                  >
+              {/* TITLE */}
+              <Text style={styles.modalTitle}>{selectedItem?.name || selectedItem?.title}</Text>
+
+              {/* PRICE */}
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: scale(15) }}>
+                <Text style={[styles.modalPrice, { marginBottom: 0 }]}>{selectedItem?.price}</Text>
+                {selectedItem?.rentalPeriod && (
+                  <Text style={[styles.modalPrice, { marginBottom: 0, fontSize: scale(16), color: '#9CA3AF' }]}>
+                    {' '}/ {selectedItem.rentalPeriod}
+                  </Text>
+                )}
+              </View>
+
+              <View style={[styles.divider, { marginBottom: scale(20) }]} />
+
+              {/* INFO CARD */}
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: scale(12), overflow: 'hidden' }}>
+                
+                {/* OWNER ROW */}
+                <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
+                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Owner</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
+                    <View
+                      style={{
+                        width: scale(28),
+                        height: scale(28),
+                        borderRadius: scale(14),
+                        backgroundColor: '#222D31',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginRight: scale(10),
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {ownerPhoto ? (
+                        <Image source={{ uri: ownerPhoto }} style={{ width: '100%', height: '100%' }} />
+                      ) : (
+                        <Text style={{ color: '#FFF', fontWeight: '800', fontSize: scale(10) }}>
+                          {selectedItem?.ownerEmail?.charAt(0).toUpperCase() ?? '?'}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text 
+                        style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31' }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {selectedItem?.ownerEmail || 'Not provided'}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* DESCRIPTION ROW */}
+                <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
+                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Description</Text>
+                  <Text style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginTop: scale(4), lineHeight: scale(20) }}>
                     {selectedItem?.description || 'No description provided.'}
                   </Text>
                 </View>
-              </View>
 
-              {/* LOCATION */}
-              <View>
-                <Text style={styles.detailLabel}>Location</Text>
-                <View style={[styles.contactRow, { alignItems: 'flex-start' }]}>
-                  <Ionicons
-                    name="location-outline"
-                    size={scale(16)}
-                    color="#AF0B01"
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text style={styles.detailValueContact}>{selectedItem?.location}</Text>
+                {/* LOCATION ROW */}
+                <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
+                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Location</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
+                    <Ionicons name="location-outline" size={scale(16)} color="#AF0B01" />
+                    <View style={{ flex: 1 }}>
+                      <Text 
+                        style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31', marginLeft: scale(5) }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {selectedItem?.location}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* POSTED ON ROW */}
+                <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14) }}>
+                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Posted On</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
+                    <Ionicons name="time-outline" size={scale(16)} color="#AF0B01" />
+                    <Text style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31', marginLeft: scale(5) }}>
+                      {formatPostedDate(selectedItem?.createdAt || selectedItem?.timestamp)}
+                    </Text>
+                  </View>
                 </View>
               </View>
+            </View>
+          </ScrollView>
 
-              {/* POSTED ON */}
-              <View>
-                <Text style={styles.detailLabel}>Posted On</Text>
-                <View style={[styles.contactRow, { alignItems: 'flex-start' }]}>
-                  <Ionicons
-                    name="time-outline"
-                    size={scale(16)}
-                    color="#AF0B01"
-                    style={{ marginTop: 2 }}
-                  />
-                  <Text style={styles.detailValueContact}>
-                    {formatPostedDate(selectedItem?.createdAt || selectedItem?.timestamp)}
-                  </Text>
-                </View>
-              </View>
+          {/* FOOTER */}
+          <View style={[styles.modalFooter, { paddingBottom: Platform.OS === 'ios' ? scale(30) : scale(15) }]}>
+            <TouchableOpacity
+              style={[styles.messageBtn, { borderRadius: scale(50), height: scale(46), marginHorizontal: scale(5) }]}
+              onPress={handleActionTrigger}
+            >
+              <Ionicons
+                name={isOwner ? 'create-outline' : 'chatbubble-ellipses-outline'}
+                size={scale(20)}
+                color="#FFFFFF"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.messageBtnText}>
+                {isOwner
+                  ? 'Edit Item'
+                  : selectedItem?.status === 'rented'
+                  ? 'Not Available'
+                  : 'Rent Now'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </Modal>
 
+      {/* DISCLAIMER MODAL */}
+      <Modal
+        visible={showDisclaimer}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDisclaimer(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
+          <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
+
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Notice</Text>
+            <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
+              Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
+              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.
+            </Text>
+            
+            <View style={{ flexDirection: 'row', width: '100%', gap: scale(10) }}>
+              <TouchableOpacity 
+                style={{ flex: 1, paddingVertical: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center' }} 
+                onPress={() => setShowDisclaimer(false)}
+                disabled={loading}
+              >
+                <Text style={{ color: '#4B5563', fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
+                onPress={processRentalRequest}
+                disabled={loading}
+              >
+                <Text style={{ color: '#FFF', fontWeight: '700' }}>
+                  {loading ? 'Sending...' : 'I Agree'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
-
-        {/* FOOTER */}
-        <View
-          style={[
-            styles.modalFooter,
-            { paddingBottom: Platform.OS === 'ios' ? scale(30) : scale(15) },
-          ]}
-        >
-          <TouchableOpacity
-            style={[
-              styles.messageBtn,
-              { borderRadius: scale(50), height: scale(46), marginHorizontal: scale(5) },
-            ]}
-            onPress={handleAction}
-          >
-            <Ionicons
-              name={isOwner ? 'create-outline' : 'chatbubble-ellipses-outline'}
-              size={scale(20)}
-              color="#FFFFFF"
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.messageBtnText}>
-              {isOwner
-                ? 'Edit Item'
-                : selectedItem?.status === 'rented'
-                ? 'Not Available'
-                : 'Rent Now'}
-            </Text>
-          </TouchableOpacity>
         </View>
-
-      </SafeAreaView>
-    </Modal>
+      </Modal>
+    </View>
   );
 };

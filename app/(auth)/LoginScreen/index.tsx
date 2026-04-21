@@ -104,7 +104,7 @@ export default function LoginScreen() {
             <View style={styles.header}>
               <Text style={styles.logo}>Cross<Text style={{color: '#AF0B01'}}>Rent</Text></Text>
               <View style={styles.quoteBar} />
-              <Text style={styles.quote}>"Where Crossians share."</Text>
+              <Text style={styles.quote}>"This platform is exclusively for Holy Cross of Davao College users."</Text>
             </View>
 
             <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />

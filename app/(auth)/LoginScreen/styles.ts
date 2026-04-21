@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
   // --- LAYOUT & GLOBAL ---
   container: { 
     flex: 1, 
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
   },
   inner: { 
     flex: 1, 
@@ -29,13 +29,15 @@ export const styles = StyleSheet.create({
   quoteBar: {
     height: 3,
     width: 40,
+
     backgroundColor: '#AF0B01',
     marginVertical: 10,
     borderRadius: 2
   },
   quote: { 
     fontSize: 14, 
-    color: '#1d3557', 
+    textAlign: 'center',
+    color: '#999', 
     fontWeight: '500',
     fontStyle: 'italic'
   },
@@ -95,9 +97,9 @@ export const styles = StyleSheet.create({
     color: '#222D31',
   },
   input: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#ffffff',
     borderWidth: 1.5,
-    borderColor: '#cfd4da',
+    borderColor: '#ffffff',
     borderRadius: 15,
     height: 60,
     paddingHorizontal: 20,
@@ -105,10 +107,11 @@ export const styles = StyleSheet.create({
     color: '#1D3557'
   },
   passwordInputContainer: { 
+    backgroundColor: '#ffffff',
     flexDirection: 'row', 
     alignItems: 'center', 
     borderWidth: 1.5, 
-    borderColor: '#cfd4da', 
+    borderColor: '#ffffff', 
     borderRadius: 15, 
     height: 60, 
     paddingHorizontal: 20 

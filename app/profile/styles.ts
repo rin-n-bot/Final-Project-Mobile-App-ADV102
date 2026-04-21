@@ -34,6 +34,7 @@ export const profileStyles = StyleSheet.create({
   // AVATAR SECTION
   avatarSection: {
     alignItems: 'center',
+    marginTop: scale(30),
     paddingTop: scale(28),
     paddingBottom: scale(24),
     paddingHorizontal: scale(20),
@@ -102,7 +103,7 @@ export const profileStyles = StyleSheet.create({
   // STATS — same card border as home listing cards
   statsRow: {
     flexDirection: 'row',
-    marginTop: scale(-20),
+    marginTop: scale(50),
     gap: scale(10),
     width: '100%',
   },
@@ -116,12 +117,12 @@ export const profileStyles = StyleSheet.create({
   },
   statNumber: {
     fontSize: scale(20),
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#222D31',
   },
   statLabel: {
     fontSize: scale(11),
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#9CA3AF',
     marginTop: scale(2),
     textTransform: 'uppercase',
@@ -131,7 +132,7 @@ export const profileStyles = StyleSheet.create({
   // SECTION LABEL — same as home sectionLabel
   section: {
     paddingHorizontal: scale(20),
-    paddingTop: scale(10),
+    paddingTop: scale(12),
     paddingBottom: scale(5),
   },
   sectionLabel: {
@@ -168,15 +169,15 @@ export const profileStyles = StyleSheet.create({
   },
   // ROW LABEL — same as cardCategory in home (muted uppercase)
   infoRowLabel: {
-    fontSize: scale(10),
+    fontSize: scale(13),
     fontWeight: '800',
     color: '#9CA3AF',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+
+    letterSpacing: 0,
   },
   // ROW VALUE — same as cardTitle in home
   infoRowValue: {
-    fontSize: scale(13),
+    fontSize: scale(16),
     fontWeight: '600',
     color: '#222D31',
     marginTop: scale(2),
@@ -184,7 +185,7 @@ export const profileStyles = StyleSheet.create({
 
   // BIO INPUT — same font as cardTitle
   bioInput: {
-    fontSize: scale(15),
+    fontSize: scale(16),
 
     color: '#222D31',
     marginTop: scale(2),

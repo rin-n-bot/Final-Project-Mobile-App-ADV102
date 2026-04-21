@@ -238,7 +238,7 @@ export default function ChatScreen() {
               alignItems: 'center',
               backgroundColor: '#ffffff',
               borderRadius: 10,
-              borderColor: '#cfd4da',
+              borderColor: '#ffffff',
               borderWidth: 1,
               paddingHorizontal: scale(10),
               height: scale(44),
@@ -392,9 +392,9 @@ export default function ChatScreen() {
                       {timeLabel ? (
                         <Text
                           style={{
-                            fontSize: scale(11),
+                            fontSize: scale(13),
                             fontWeight: '700',
-                            color: item.isUnread ? '#AF0B01' : '#9CA3AF',
+                            color: item.isUnread ? '#222D31' : '#9CA3AF',
                             flexShrink: 0,
                           }}
                         >
