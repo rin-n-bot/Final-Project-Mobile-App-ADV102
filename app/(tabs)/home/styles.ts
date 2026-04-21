@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
   // --- SEARCH SECTION ---
   searchSection: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    marginBottom: scale(15),
+    marginBottom: scale(20),
   },
   searchBar: {
     flexDirection: 'row',
@@ -126,6 +126,13 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ffffff',
     backgroundColor: '#FFFFFF',
+      // 👇 LIGHT SHADOW
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+
+  elevation: 2, // Android
   },
   searchInput: {
     flex: 1,
@@ -139,7 +146,7 @@ export const styles = StyleSheet.create({
     fontSize: scale(15),
     fontWeight: '800',
     color: '#222D31',
-    marginTop: scale(4),
+    marginTop: scale(5),
     marginBottom: scale(12),
   },
   categoryGrid: {

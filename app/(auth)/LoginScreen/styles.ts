@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     top: -10,
     left: 15,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
     paddingHorizontal: 5,
     zIndex: 1,
   },
@@ -104,7 +104,14 @@ export const styles = StyleSheet.create({
     height: 60,
     paddingHorizontal: 20,
     fontSize: 16,
-    color: '#1D3557'
+    color: '#1D3557',
+      // 👇 LIGHT SHADOW
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+
+  elevation: 1.5, // Android
   },
   passwordInputContainer: { 
     backgroundColor: '#ffffff',
@@ -114,7 +121,14 @@ export const styles = StyleSheet.create({
     borderColor: '#ffffff', 
     borderRadius: 15, 
     height: 60, 
-    paddingHorizontal: 20 
+    paddingHorizontal: 20,
+      // 👇 LIGHT SHADOW
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+
+  elevation: 2, // Android
   },
 
   // --- ACTION BUTTONS ---

@@ -233,7 +233,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
               <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: scale(15) }}>
                 <Text style={[styles.modalPrice, { marginBottom: 0 }]}>{selectedItem?.price}</Text>
                 {selectedItem?.rentalPeriod && (
-                  <Text style={[styles.modalPrice, { marginBottom: 0, fontSize: scale(16), color: '#9CA3AF' }]}>
+                  <Text style={[styles.modalPrice, { marginBottom: 0, fontSize: scale(16), color: '#AF0B01' }]}>
                     {' '}/ {selectedItem.rentalPeriod}
                   </Text>
                 )}
@@ -246,7 +246,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                 
                 {/* OWNER ROW */}
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
-                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Owner</Text>
+                  <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Owner</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <View
                       style={{
@@ -282,7 +282,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
 
                 {/* DESCRIPTION ROW */}
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
-                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Description</Text>
+                  <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Description</Text>
                   <Text style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginTop: scale(4), lineHeight: scale(20) }}>
                     {selectedItem?.description || 'No description provided.'}
                   </Text>
@@ -290,7 +290,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
 
                 {/* LOCATION ROW */}
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
-                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Location</Text>
+                  <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Location</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <Ionicons name="location-outline" size={scale(16)} color="#AF0B01" />
                     <View style={{ flex: 1 }}>
@@ -307,7 +307,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
 
                 {/* POSTED ON ROW */}
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14) }}>
-                  <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>Posted On</Text>
+                  <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Posted On</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <Ionicons name="time-outline" size={scale(16)} color="#AF0B01" />
                     <Text style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31', marginLeft: scale(5) }}>
@@ -353,10 +353,10 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
           <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
 
-            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Notice</Text>
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Disclaimer</Text>
             <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
               Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
-              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.
+              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.{"\n"}
             </Text>
             
             <View style={{ flexDirection: 'row', width: '100%', gap: scale(10) }}>

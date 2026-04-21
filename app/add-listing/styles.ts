@@ -46,7 +46,15 @@ const s = StyleSheet.create({
     padding: 12, 
     marginBottom: 20,
     fontSize: 15,
-    color: '#222D31'
+    color: '#222D31',
+
+      // 👇 LIGHT SHADOW
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+
+  elevation: 2, // Android
   },
   textArea: { 
     height: 100, 

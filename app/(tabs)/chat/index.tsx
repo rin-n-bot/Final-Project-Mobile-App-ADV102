@@ -242,6 +242,14 @@ export default function ChatScreen() {
               borderWidth: 1,
               paddingHorizontal: scale(10),
               height: scale(44),
+
+                // 👇 LIGHT SHADOW
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+
+  elevation: 2, // Android
             }}
           >
             <Ionicons name="search-outline" size={16} color="#cfd4da" style={{ marginRight: 6 }} />
@@ -287,7 +295,7 @@ export default function ChatScreen() {
                 style={{
                   textAlign: 'center',
                   fontSize: scale(13),
-                  fontWeight: '800',
+                  fontWeight: '700',
                   color: chatTab === tab ? '#AF0B01' : '#9CA3AF',
                 }}
               >
@@ -330,7 +338,7 @@ export default function ChatScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     padding: 15,
-                    backgroundColor: isSelected ? '#FFF4F4' : '#FFFFFF',
+                    backgroundColor: isSelected ? '#FFF4F4' : '#f5f5f5',
                     borderRadius: 12,
                     marginBottom: 10,
                     // No borderColor — rounded white card on #F5F5F5 background

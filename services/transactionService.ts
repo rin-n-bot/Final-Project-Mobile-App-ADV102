@@ -1,5 +1,5 @@
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { addDoc, collection, doc, serverTimestamp, updateDoc, getDocs, query, where, writeBatch, deleteDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 
 export const handleRentRequest = async (item: any, user: any) => {
   // 1. Create the Transaction
@@ -10,30 +10,138 @@ export const handleRentRequest = async (item: any, user: any) => {
     ownerEmail: item.ownerEmail,
     renterId: user.uid,
     renterEmail: user.email,
-    status: "requested", // Professor requirement: status workflow
+    status: "requested",
     createdAt: serverTimestamp(),
+    itemDeleted: false,
   });
 
-  // 2. Update Item Status to Pending (Normalize logic)
+  // 2. Update Item Status to Pending
   const itemRef = doc(db, "items", item.id);
-  await updateDoc(itemRef, { 
+  await updateDoc(itemRef, {
     status: "Pending",
-    currentTransactionId: transRef.id 
+    currentTransactionId: transRef.id
+  });
+
+  // 3. Log
+  await addDoc(collection(db, "logs"), {
+    action: "requested",
+    by: user.uid,
+    role: "renter",
+    transactionId: transRef.id,
+    itemId: item.id,
+    itemName: item.name || item.title,
+    createdAt: serverTimestamp(),
   });
 
   return transRef.id;
 };
 
-export const updateTransactionStatus = async (transactionId: string, itemId: string, newStatus: string) => {
-  const transRef = doc(db, "transactions", transactionId);
-  const itemRef = doc(db, "items", itemId);
+export const updateTransactionStatus = async (
+  transactionId: string,
+  itemId: string,
+  newStatus: string
+) => {
+  const user = auth.currentUser;
+  if (!user) return;
 
+  const transRef = doc(db, "transactions", transactionId);
+
+  // 1. Update transaction status
   await updateDoc(transRef, { status: newStatus });
 
-  // Logical Mapping: If returned or cancelled, item is Available again.
-  if (newStatus === "rented") {
-    await updateDoc(itemRef, { status: "Rented" });
-  } else if (newStatus === "completed" || newStatus === "cancelled") {
-    await updateDoc(itemRef, { status: "Available", currentTransactionId: null });
+  // 2. Update item ONLY if it still exists (guard against deleted items)
+  try {
+    const itemRef = doc(db, "items", itemId);
+    if (newStatus === "rented") {
+      await updateDoc(itemRef, { status: "Rented" });
+    } else if (newStatus === "completed" || newStatus === "cancelled") {
+      await updateDoc(itemRef, {
+        status: "Available",
+        currentTransactionId: null
+      });
+    }
+  } catch (err: any) {
+    if (err?.code !== 'not-found') {
+      throw err;
+    }
   }
+
+  // 3. Determine role accurately
+  const role =
+    newStatus === "cancelled"
+      ? "renter"
+      : newStatus === "completed"
+      ? "owner"
+      : "owner";
+
+  // 4. Log
+  await addDoc(collection(db, "logs"), {
+    action: newStatus,
+    by: user.uid,
+    role,
+    transactionId,
+    itemId,
+    createdAt: serverTimestamp(),
+  });
+};
+
+// Called when owner deletes an item
+export const handleItemDelete = async (itemId: string, itemName: string) => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const batch = writeBatch(db);
+
+  // 1. Find all active transactions for this item
+  const q = query(
+    collection(db, "transactions"),
+    where("itemId", "==", itemId),
+    where("status", "in", ["requested", "rented"])
+  );
+  const snapshot = await getDocs(q);
+
+  // 2. Mark each transaction as item deleted (do NOT change status so they stay in lending/borrowing tabs)
+  snapshot.forEach((txDoc) => {
+    batch.update(txDoc.ref, {
+      itemDeleted: true,
+      itemName: "Deleted Item",
+    });
+  });
+
+  // 3. Delete the item doc
+  const itemRef = doc(db, "items", itemId);
+  batch.delete(itemRef);
+
+  // 4. Commit atomically
+  await batch.commit();
+
+  // 5. Log
+  await addDoc(collection(db, "logs"), {
+    action: "item_deleted",
+    by: user.uid,
+    role: "owner",
+    itemId,
+    itemName,
+    affectedTransactions: snapshot.docs.map((d) => d.id),
+    createdAt: serverTimestamp(),
+  });
+};
+
+// Called when a user dismisses/deletes a transaction card marked as itemDeleted
+export const deleteTransactionRecord = async (transactionId: string, itemId: string, itemName: string) => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  // 1. Log BEFORE deleting so the record exists
+  await addDoc(collection(db, "logs"), {
+    action: "transaction_dismissed",
+    by: user.uid,
+    transactionId,
+    itemId,
+    itemName,
+    createdAt: serverTimestamp(),
+  });
+
+  // 2. Delete the transaction document
+  await deleteDoc(doc(db, "transactions", transactionId));
 };

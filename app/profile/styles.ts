@@ -170,7 +170,7 @@ export const profileStyles = StyleSheet.create({
   // ROW LABEL — same as cardCategory in home (muted uppercase)
   infoRowLabel: {
     fontSize: scale(13),
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#9CA3AF',
 
     letterSpacing: 0,

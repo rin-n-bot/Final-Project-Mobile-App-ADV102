@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import {
     collection,
-    deleteDoc,
     doc,
     onSnapshot,
     orderBy,
@@ -25,6 +24,7 @@ import {
     Animated
 } from 'react-native';
 import { auth, db } from '../../firebase';
+import { handleItemDelete } from '../../services/transactionService';
 import { COLORS } from '../../styles/global';
 import { listingStyles as styles } from './styles';
 
@@ -111,7 +111,7 @@ export default function MyListingScreen() {
         return itemCat === selected || itemCat === selected + 's' || itemCat + 's' === selected;
     });
 
-    const handleDelete = (itemId: string) => {
+    const handleDelete = (itemId: string, itemName: string) => {
         Alert.alert(
             "Delete Listing",
             "Are you sure? This will remove the item from Firestore permanently.",
@@ -122,7 +122,7 @@ export default function MyListingScreen() {
                     style: "destructive",
                     onPress: async () => {
                         try {
-                            await deleteDoc(doc(db, 'items', itemId));
+                            await handleItemDelete(itemId, itemName);
                         } catch (error) {
                             Alert.alert("Error", "Failed to delete item.");
                         }
@@ -181,7 +181,7 @@ export default function MyListingScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.actionBtn}
-                        onPress={() => handleDelete(item.id)}
+                        onPress={() => handleDelete(item.id, item.name)}
                     >
                         <Ionicons name="trash-outline" size={22} color={COLORS.accent} />
                     </TouchableOpacity>
@@ -236,7 +236,7 @@ export default function MyListingScreen() {
                             paddingVertical: scale(10),
                         }}
                     >
-                        <Text style={{ fontSize: scale(13), fontWeight: '800', color: '#9CA3AF' }}>
+                        <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>
                             {activeCategory === 'All' ? 'All Categories' : activeCategory.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                         </Text>
                         <Animated.View style={{ transform: [{ rotate: arrowRotation }] }}>
@@ -305,7 +305,7 @@ export default function MyListingScreen() {
                         renderItem={renderItem}
                         contentContainerStyle={styles.listContainer}
                         ListEmptyComponent={
-                            <View style={{ alignItems: 'center', marginTop: scale(150) }}>
+                            <View style={{ alignItems: 'center', marginTop: scale(220) }}>
                                 <Ionicons name="list-outline" size={scale(60)} color="#cfd4da" />
                                 <Text style={[styles.emptyText, { marginTop: scale(5), color: '#cfd4da', fontWeight: '700' }]}>
                                     {activeCategory === 'All' ? "No listings created." : `No listings in ${activeCategory}`}

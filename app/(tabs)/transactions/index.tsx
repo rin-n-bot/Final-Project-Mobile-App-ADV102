@@ -24,7 +24,7 @@ import {
   Modal,
 } from 'react-native';
 import { auth, db } from '../../../firebase';
-import { updateTransactionStatus } from '../../../services/transactionService';
+import { updateTransactionStatus, deleteTransactionRecord } from '../../../services/transactionService';
 import { scale, transStyles as styles } from './styles';
 
 interface Transaction {
@@ -36,6 +36,7 @@ interface Transaction {
   renterId: string;
   renterEmail: string;
   status: 'requested' | 'rented' | 'completed' | 'cancelled';
+  itemDeleted?: boolean;
   createdAt?: Timestamp;
 }
 
@@ -52,7 +53,6 @@ export default function TransactionsScreen() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // New state for Approval Disclaimer
   const [showApproveDisclaimer, setShowApproveDisclaimer] = useState(false);
   const [pendingApprovalData, setPendingApprovalData] = useState<{id: string, itemId: string} | null>(null);
 
@@ -153,9 +153,9 @@ export default function TransactionsScreen() {
       'Are you sure the item has been returned safely? This will complete the transaction.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Confirm', 
-          onPress: () => updateTransactionStatus(id, itemId, 'completed') 
+        {
+          text: 'Confirm',
+          onPress: () => updateTransactionStatus(id, itemId, 'completed')
         }
       ]
     );
@@ -164,6 +164,11 @@ export default function TransactionsScreen() {
   const renderItem = ({ item }: { item: Transaction }) => {
     const isOwner = item.ownerId === user?.uid;
     const isSelected = selectedIds.includes(item.id);
+
+    const isItemDeleted =
+      item.itemDeleted === true ||
+      !item.itemName ||
+      item.itemName === 'Deleted Item';
 
     const dateLabel = item.createdAt
       ? new Date(item.createdAt.seconds * 1000).toLocaleDateString(undefined, {
@@ -179,6 +184,7 @@ export default function TransactionsScreen() {
       : 'Pending';
 
     const getStatusColor = () => {
+      if (isItemDeleted) return { bg: '#F3F4F6', text: '#6B7280' };
       if (item.status === 'requested') return { bg: '#FFF3E0', text: '#E65100' };
       if (item.status === 'rented') return { bg: '#E8F5E9', text: '#27AE60' };
       if (item.status === 'completed') return { bg: '#E3F2FD', text: '#1976D2' };
@@ -202,11 +208,11 @@ export default function TransactionsScreen() {
       >
         <View style={styles.cardHeader}>
           <Text style={[styles.cardTitle, { flex: 1 }]} numberOfLines={1}>
-            {item.itemName}
+            {isItemDeleted ? 'Item no longer available' : item.itemName}
           </Text>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusTextPlain, { color: statusStyle.text }]}>
-              {item.status}
+              {isItemDeleted ? 'Unavailable' : item.status}
             </Text>
           </View>
           {isSelectionMode && (
@@ -230,23 +236,62 @@ export default function TransactionsScreen() {
           </Text>
         </View>
 
-        {!isSelectionMode &&
-          (item.status === 'requested' || (isOwner && item.status === 'rented')) && (
-            <View style={{ flexDirection: 'row', marginTop: scale(15), gap: scale(10) }}>
-              {isOwner && item.status === 'requested' && (
-                <>
+        {!isSelectionMode && (
+          <View style={{ flexDirection: 'row', marginTop: scale(15), gap: scale(10) }}>
+            {isItemDeleted ? (
+              // Item deleted — both owner and renter see this regardless of role
+              <TouchableOpacity
+                style={[
+                  styles.messageBtn,
+                  { backgroundColor: '#AF0B01', flex: 1, height: scale(40) },
+                ]}
+                onPress={() =>
+                  deleteTransactionRecord(item.id, item.itemId, item.itemName)
+                }
+              >
+                <Text style={styles.messageBtnText}>Delete Request</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                {isOwner && item.status === 'requested' && (
+                  <>
+                    <TouchableOpacity
+                      style={[
+                        styles.messageBtn,
+                        { backgroundColor: '#222D31', flex: 1, height: scale(40) },
+                      ]}
+                      onPress={() => {
+                        setPendingApprovalData({ id: item.id, itemId: item.itemId });
+                        setShowApproveDisclaimer(true);
+                      }}
+                    >
+                      <Text style={styles.messageBtnText}>Approve</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.messageBtn,
+                        { backgroundColor: '#AF0B01', flex: 1, height: scale(40) },
+                      ]}
+                      onPress={() => updateTransactionStatus(item.id, item.itemId, 'cancelled')}
+                    >
+                      <Text style={styles.messageBtnText}>Decline</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {isOwner && item.status === 'rented' && (
                   <TouchableOpacity
                     style={[
                       styles.messageBtn,
                       { backgroundColor: '#222D31', flex: 1, height: scale(40) },
                     ]}
-                    onPress={() => {
-                      setPendingApprovalData({ id: item.id, itemId: item.itemId });
-                      setShowApproveDisclaimer(true);
-                    }}
+                    onPress={() => handleConfirmReturn(item.id, item.itemId)}
                   >
-                    <Text style={styles.messageBtnText}>Approve</Text>
+                    <Text style={styles.messageBtnText}>Confirm Return</Text>
                   </TouchableOpacity>
+                )}
+
+                {!isOwner && item.status === 'requested' && (
                   <TouchableOpacity
                     style={[
                       styles.messageBtn,
@@ -254,36 +299,13 @@ export default function TransactionsScreen() {
                     ]}
                     onPress={() => updateTransactionStatus(item.id, item.itemId, 'cancelled')}
                   >
-                    <Text style={styles.messageBtnText}>Decline</Text>
+                    <Text style={styles.messageBtnText}>Cancel Request</Text>
                   </TouchableOpacity>
-                </>
-              )}
-
-              {isOwner && item.status === 'rented' && (
-                <TouchableOpacity
-                  style={[
-                    styles.messageBtn,
-                    { backgroundColor: '#222D31', flex: 1, height: scale(40) },
-                  ]}
-                  onPress={() => handleConfirmReturn(item.id, item.itemId)}
-                >
-                  <Text style={styles.messageBtnText}>Confirm Return</Text>
-                </TouchableOpacity>
-              )}
-
-              {!isOwner && item.status === 'requested' && (
-                <TouchableOpacity
-                  style={[
-                    styles.messageBtn,
-                    { backgroundColor: '#AF0B01', flex: 1, height: scale(40) },
-                  ]}
-                  onPress={() => updateTransactionStatus(item.id, item.itemId, 'cancelled')}
-                >
-                  <Text style={styles.messageBtnText}>Cancel Request</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
+                )}
+              </>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -347,7 +369,7 @@ export default function TransactionsScreen() {
                 style={{
                   textAlign: 'center',
                   fontSize: scale(13),
-                  fontWeight: '800',
+                  fontWeight: '700',
                   color: viewMode === mode ? '#AF0B01' : '#9CA3AF',
                 }}
               >
@@ -391,15 +413,15 @@ export default function TransactionsScreen() {
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
           <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
-            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Notice</Text>
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Disclaimer</Text>
             <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
               Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
-              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.
+              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.{"\n"}
             </Text>
-            
+
             <View style={{ flexDirection: 'row', width: '100%', gap: scale(10) }}>
-              <TouchableOpacity 
-                style={{ flex: 1, paddingVertical: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center' }} 
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center' }}
                 onPress={() => {
                   setShowApproveDisclaimer(false);
                   setPendingApprovalData(null);
@@ -407,9 +429,9 @@ export default function TransactionsScreen() {
               >
                 <Text style={{ color: '#4B5563', fontWeight: '700' }}>Cancel</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
+
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }}
                 onPress={() => {
                   if (pendingApprovalData) {
                     updateTransactionStatus(pendingApprovalData.id, pendingApprovalData.itemId, 'rented');
