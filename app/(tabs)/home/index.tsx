@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -15,14 +16,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { GREETING_QUOTES } from '../../../constants/quotes';
+import { useDrawer } from '../../../context/DrawerContext';
 import { auth, db } from '../../../firebase';
 import { ModalItemDetails } from '../../modal/ModalItemDetails';
 import { CategoryCard } from '../home/components/CategoryCard';
 import { ListingCard } from '../home/components/ListingCard';
-import { GREETING_QUOTES } from '../../../constants/quotes';
 import { scale, styles } from './styles';
-import { useDrawer } from '../../../context/DrawerContext';
 
 export default function HomeScreen() {
   const { toggleDrawer, isDrawerOpen } = useDrawer();
@@ -235,7 +235,7 @@ export default function HomeScreen() {
                 />
               </Animated.View>
             </TouchableOpacity>
-            <Animated.Text style={[styles.greetingText, { opacity: fadeAnim }]}>
+            <Animated.Text style={[styles.greetingText, { opacity: fadeAnim, letterSpacing: -1 }]}>
               {GREETING_QUOTES[quoteIndex]}
             </Animated.Text>
           </View>

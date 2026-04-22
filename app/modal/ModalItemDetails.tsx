@@ -295,7 +295,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                     <Ionicons name="location-outline" size={scale(16)} color="#AF0B01" />
                     <View style={{ flex: 1 }}>
                       <Text 
-                        style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31', marginLeft: scale(5) }}
+                        style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginLeft: scale(5) }}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -310,7 +310,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                   <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Posted On</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <Ionicons name="time-outline" size={scale(16)} color="#AF0B01" />
-                    <Text style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31', marginLeft: scale(5) }}>
+                    <Text style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginLeft: scale(5) }}>
                       {formatPostedDate(selectedItem?.createdAt || selectedItem?.timestamp)}
                     </Text>
                   </View>
@@ -353,7 +353,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
           <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
 
-            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Disclaimer</Text>
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#AF0B01', marginBottom: scale(12) }}>Disclaimer</Text>
             <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
               Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
               We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.{"\n"}
@@ -369,7 +369,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
+                style={{ flex: 1, backgroundColor: '#222D31', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
                 onPress={processRentalRequest}
                 disabled={loading}
               >

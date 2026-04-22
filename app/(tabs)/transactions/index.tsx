@@ -7,7 +7,7 @@ import {
   query,
   where,
   doc,
-  deleteDoc,
+  updateDoc,
   Timestamp,
 } from 'firebase/firestore';
 import React, { useEffect, useState, useRef } from 'react';
@@ -24,7 +24,7 @@ import {
   Modal,
 } from 'react-native';
 import { auth, db } from '../../../firebase';
-import { updateTransactionStatus, deleteTransactionRecord } from '../../../services/transactionService';
+import { updateTransactionStatus } from '../../../services/transactionService';
 import { scale, transStyles as styles } from './styles';
 
 interface Transaction {
@@ -38,6 +38,9 @@ interface Transaction {
   status: 'requested' | 'rented' | 'completed' | 'cancelled';
   itemDeleted?: boolean;
   createdAt?: Timestamp;
+  // Visibility flags for independent deletion
+  showToOwner?: boolean;
+  showToRenter?: boolean;
 }
 
 type ViewMode = 'lending' | 'borrowing' | 'completed' | 'returned';
@@ -58,14 +61,12 @@ export default function TransactionsScreen() {
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // 1. PARAM LISTENER
   useEffect(() => {
     if (params.initialTab) {
       setViewMode(params.initialTab as ViewMode);
     }
   }, [params.initialTab, params.ts]);
 
-  // 2. FADE ON TAB CHANGE
   useEffect(() => {
     fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
@@ -75,7 +76,6 @@ export default function TransactionsScreen() {
     }).start();
   }, [viewMode]);
 
-  // 3. FIRESTORE LISTENER
   useEffect(() => {
     if (!user) return;
     const q = query(
@@ -101,12 +101,18 @@ export default function TransactionsScreen() {
     setSelectedIds([]);
   };
 
+  // UPDATED FILTER: Only show if the user's specific visibility flag is not false
   const filteredData = transactions.filter((t) => {
+    const isOwner = t.ownerId === user?.uid;
+    const isVisible = isOwner ? t.showToOwner !== false : t.showToRenter !== false;
+    
+    if (!isVisible) return false;
+
     switch (viewMode) {
       case 'lending':
-        return t.ownerId === user?.uid && (t.status === 'requested' || t.status === 'rented');
+        return isOwner && (t.status === 'requested' || t.status === 'rented');
       case 'borrowing':
-        return t.renterId === user?.uid && (t.status === 'requested' || t.status === 'rented');
+        return !isOwner && (t.status === 'requested' || t.status === 'rented');
       case 'completed':
         return t.status === 'completed';
       case 'returned':
@@ -122,25 +128,36 @@ export default function TransactionsScreen() {
     );
   };
 
+  // UPDATED DELETE: Hides for the current user only
+  const handleHideTransaction = async (id: string) => {
+    const transaction = transactions.find(t => t.id === id);
+    if (!transaction || !user) return;
+
+    const isOwner = transaction.ownerId === user.uid;
+    const updateField = isOwner ? { showToOwner: false } : { showToRenter: false };
+
+    try {
+      await updateDoc(doc(db, 'transactions', id), updateField);
+    } catch (error) {
+      Alert.alert('Error', 'Could not remove record.');
+    }
+  };
+
   const handleDeleteSelected = () => {
     if (selectedIds.length === 0) return;
     Alert.alert(
-      'Delete Records',
-      `Delete ${selectedIds.length} transaction record(s) permanently?`,
+      'Remove Records',
+      `Remove ${selectedIds.length} record(s) from your view?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'Remove',
           style: 'destructive',
           onPress: async () => {
-            try {
-              for (const id of selectedIds) {
-                await deleteDoc(doc(db, 'transactions', id));
-              }
-              exitSelectionMode();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete some records.');
+            for (const id of selectedIds) {
+              await handleHideTransaction(id);
             }
+            exitSelectionMode();
           },
         },
       ]
@@ -239,15 +256,12 @@ export default function TransactionsScreen() {
         {!isSelectionMode && (
           <View style={{ flexDirection: 'row', marginTop: scale(15), gap: scale(10) }}>
             {isItemDeleted ? (
-              // Item deleted — both owner and renter see this regardless of role
               <TouchableOpacity
                 style={[
                   styles.messageBtn,
                   { backgroundColor: '#AF0B01', flex: 1, height: scale(40) },
                 ]}
-                onPress={() =>
-                  deleteTransactionRecord(item.id, item.itemId, item.itemName)
-                }
+                onPress={() => handleHideTransaction(item.id)}
               >
                 <Text style={styles.messageBtnText}>Delete Request</Text>
               </TouchableOpacity>
@@ -316,7 +330,6 @@ export default function TransactionsScreen() {
     >
       <StatusBar barStyle={isSelectionMode ? 'light-content' : 'dark-content'} />
 
-      {/* TOP NAV */}
       <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }, isSelectionMode && { backgroundColor: '#AF0B01' }]}>
         {isSelectionMode ? (
           <TouchableOpacity onPress={exitSelectionMode} style={{ marginRight: scale(12) }}>
@@ -345,7 +358,6 @@ export default function TransactionsScreen() {
         )}
       </View>
 
-      {/* TABS */}
       {!isSelectionMode && (
         <View
           style={{
@@ -380,7 +392,6 @@ export default function TransactionsScreen() {
         </View>
       )}
 
-      {/* LIST */}
       <Animated.View style={{ flex: 1, backgroundColor: '#F5F5F5', opacity: fadeAnim }}>
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -404,7 +415,6 @@ export default function TransactionsScreen() {
         )}
       </Animated.View>
 
-      {/* APPROVE DISCLAIMER MODAL */}
       <Modal
         visible={showApproveDisclaimer}
         transparent={true}
@@ -413,7 +423,7 @@ export default function TransactionsScreen() {
       >
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
           <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
-            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#222D31', marginBottom: scale(12) }}>Disclaimer</Text>
+            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#AF0B01', marginBottom: scale(12) }}>Disclaimer</Text>
             <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
               Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
               We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.{"\n"}
@@ -431,7 +441,7 @@ export default function TransactionsScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{ flex: 1, backgroundColor: '#AF0B01', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }}
+                style={{ flex: 1, backgroundColor: '#222D31', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }}
                 onPress={() => {
                   if (pendingApprovalData) {
                     updateTransactionStatus(pendingApprovalData.id, pendingApprovalData.itemId, 'rented');

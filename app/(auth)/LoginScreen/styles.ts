@@ -3,7 +3,6 @@ import { StyleSheet, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
-  // --- LAYOUT & GLOBAL ---
   container: { 
     flex: 1, 
     backgroundColor: '#f5f5f5',
@@ -14,41 +13,38 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingBottom: 30,
   },
-
-  // --- HEADER & BRANDING ---
   header: { 
-    alignItems: 'center', 
-    marginBottom: 50 
+    alignItems: 'flex-start', 
+    marginBottom: 60
   },
   logo: { 
-    fontSize: 44, 
-    fontWeight: '900', 
+    fontSize: 18, 
+    fontWeight: '800', 
     color: '#222D31',
-    letterSpacing: -1.5
+    letterSpacing: -0.5,
+    marginBottom: 8
   },
-  quoteBar: {
-    height: 3,
-    width: 40,
+  heroHeader: {
+    fontSize: 35,
+    fontWeight: '900',
+    color: '#222D31',
+    letterSpacing: -1.5,
+  },
 
-    backgroundColor: '#AF0B01',
-    marginVertical: 10,
-    borderRadius: 2
-  },
   quote: { 
-    fontSize: 14, 
-    textAlign: 'center',
+    fontSize: 13, 
+    textAlign: 'left',
     color: '#999', 
     fontWeight: '500',
-    fontStyle: 'italic'
+    fontStyle: 'italic',
+    lineHeight: 18
   },
-
-  // --- SELECTION TOGGLE (LOGIN / REGISTER) ---
   selectionWrapper: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     borderRadius: 15,
     padding: 6,
-    marginBottom: 40,
+    marginBottom: 35,
     borderWidth: 1,
     borderColor: '#cfd4da'
   },
@@ -74,8 +70,6 @@ export const styles = StyleSheet.create({
   activeText: {
     color: '#FFFFFF'
   },
-
-  // --- FORM & INPUT FIELDS ---
   form: {
     width: '100%'
   },
@@ -105,13 +99,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 16,
     color: '#1D3557',
-      // 👇 LIGHT SHADOW
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 2,
-
-  elevation: 1.5, // Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
   },
   passwordInputContainer: { 
     backgroundColor: '#ffffff',
@@ -122,23 +114,19 @@ export const styles = StyleSheet.create({
     borderRadius: 15, 
     height: 60, 
     paddingHorizontal: 20,
-      // 👇 LIGHT SHADOW
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 2,
-
-  elevation: 2, // Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
   },
-
-  // --- ACTION BUTTONS ---
   mainActionBtn: {
     backgroundColor: '#AF0B01',
     height: 60,
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
     elevation: 3,
     shadowColor: '#AF0B01',
     shadowOffset: { width: 0, height: 4 },
@@ -160,15 +148,14 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600'
   },
-
-  // --- FOOTER BRANDING ---
   footerLogoContainer: { 
     alignItems: 'center', 
-    marginTop: 20 
+    marginTop: 30 
   },
   footerLogo: { 
-    width: 50, 
-    height: 50, 
-    resizeMode: 'contain' 
+    width: 45, 
+    height: 45, 
+    resizeMode: 'contain',
+    opacity: 0.6
   }
 });

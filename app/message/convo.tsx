@@ -1,79 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  View,
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Keyboard,
+  Platform,
+  SafeAreaView,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  StatusBar,
-  SafeAreaView,
-  ActivityIndicator,
-  Keyboard,
-  Platform,
+  View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { db, auth } from '../../firebase';
-import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  doc,
-  updateDoc,
-  getDoc,
-  arrayUnion,
-} from 'firebase/firestore';
 import { chatStyles } from '../(tabs)/chat/styles';
-import { Image } from 'expo-image';
-import { scale } from '../(tabs)/transactions/styles';
+import { auth, db } from '../../firebase';
 
-const TIME_GAP_THRESHOLD_MS = 15 * 60 * 1000;
+// 1 minute gap threshold for Messenger-style behavior
+const TIME_GAP_THRESHOLD_MS = 1 * 60 * 1000;
 
 const formatDividerTime = (seconds: number): string => {
+  if (!seconds) return 'Pending';
+
+  // 1. Convert Firestore seconds to a Date object
   const date = new Date(seconds * 1000);
-  const now = new Date();
-  const isToday =
-    date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday =
-    date.getDate() === yesterday.getDate() &&
-    date.getMonth() === yesterday.getMonth() &&
-    date.getFullYear() === yesterday.getFullYear();
-  const timeStr = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
-  if (isToday) return timeStr;
-  if (isYesterday) return `Yesterday ${timeStr}`;
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (diffDays < 7) return date.toLocaleDateString(undefined, { weekday: 'long' }) + ' ' + timeStr;
-  const sameYear = date.getFullYear() === now.getFullYear();
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) }) + ' ' + timeStr;
+  
+  // 2. Adjust for Philippines Time (UTC+8) manually to avoid "Invalid Date"
+  // This works universally across all devices/engines
+  const PHT_OFFSET = 8 * 60 * 60 * 1000;
+  const phtDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000) + PHT_OFFSET);
+  const phtNow = new Date(new Date().getTime() + (new Date().getTimezoneOffset() * 60000) + PHT_OFFSET);
+
+  // 3. Setup helpers for "Today" and "Yesterday"
+  const isSameDay = (d1: Date, d2: Date) =>
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+
+  const yesterday = new Date(phtNow);
+  yesterday.setDate(phtNow.getDate() - 1);
+
+  // 4. Format the Time part (e.g., 10:30 PM)
+  const hours = phtDate.getHours();
+  const minutes = phtDate.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+  const minStr = minutes < 10 ? `0${minutes}` : minutes;
+  const timeStr = `${hour12}:${minStr} ${ampm}`;
+
+  // 5. Messenger Logic: Today, Yesterday, Weekday, or Full Date
+  if (isSameDay(phtDate, phtNow)) {
+    return timeStr;
+  }
+
+  if (isSameDay(phtDate, yesterday)) {
+    return `Yesterday ${timeStr}`;
+  }
+
+  const diffTime = phtNow.getTime() - phtDate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 7) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return `${days[phtDate.getDay()]} ${timeStr}`;
+  }
+
+  // Older than a week
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = months[phtDate.getMonth()];
+  const day = phtDate.getDate();
+  const year = phtDate.getFullYear();
+  const sameYear = year === phtNow.getFullYear();
+
+  return `${monthStr} ${day}${sameYear ? '' : `, ${year}`} ${timeStr}`;
 };
 
 type MessageItem =
   | { type: 'message'; id: string; data: any; showAvatar: boolean }
   | { type: 'divider'; id: string; label: string };
 
+
 const buildMessageItems = (messages: any[]): MessageItem[] => {
   const items: MessageItem[] = [];
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    const prevMsg = messages[i - 1];
+    const prevMsg = messages[i - 1]; // Message sent "after" this one in the list (since it's inverted)
+    
+    // Avatar logic remains the same
     const isLastInStack = !prevMsg || prevMsg.senderId !== msg.senderId;
     items.push({ type: 'message', id: msg.id, data: msg, showAvatar: isLastInStack });
-    const nextMsg = messages[i + 1];
+
+    const nextMsg = messages[i + 1]; // Message sent "before" this one
     if (nextMsg) {
       const currTime = (msg.createdAt?.seconds ?? 0) * 1000;
       const nextTime = (nextMsg.createdAt?.seconds ?? 0) * 1000;
       const gap = currTime - nextTime;
+
+      // Only show a divider if the gap is 1 minute or more
       if (gap >= TIME_GAP_THRESHOLD_MS && nextMsg.createdAt?.seconds) {
         items.push({ type: 'divider', id: `divider-${nextMsg.id}`, label: formatDividerTime(nextMsg.createdAt.seconds) });
       }
     } else if (msg.createdAt?.seconds) {
+      // Always show the timestamp for the very first message in the chat
       items.push({ type: 'divider', id: `divider-first-${msg.id}`, label: formatDividerTime(msg.createdAt.seconds) });
     }
   }
@@ -218,8 +259,8 @@ export default function MessageScreen() {
                         {showAvatar && (recipientPhoto ? <Image source={{ uri: recipientPhoto }} style={{ width: 28, height: 28, borderRadius: 14 }} /> : <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '800' }}>{msg.senderEmail?.charAt(0).toUpperCase()}</Text>)}
                       </View>
                     )}
-                    <View style={{ maxWidth: '72%', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, borderBottomRightRadius: isMine ? 4 : 22, borderBottomLeftRadius: isMine ? 22 : 4, backgroundColor: isMine ? '#222D31' : '#FFFFFF', ...(isMine ? {} : Platform.OS === 'ios' ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 } : { elevation: 2 }) }}>
-                      <Text style={{ fontSize: 15, lineHeight: 22, color: isMine ? '#FFF' : '#222D31', flexShrink: 1, flexWrap: 'wrap' }}>{msg.text}</Text>
+                    <View style={{ paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, borderBottomRightRadius: isMine ? 4 : 22, borderBottomLeftRadius: isMine ? 22 : 4, backgroundColor: isMine ? '#222D31' : '#FFFFFF', maxWidth: '85%', ...(isMine ? {} : Platform.OS === 'ios' ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4 } : { elevation: 2 }) }}>
+                      <Text style={{ fontSize: 15, lineHeight: 22, color: isMine ? '#FFF' : '#222D31', flexWrap: 'wrap', width: '100%' }}>{msg.text}</Text>
                     </View>
                   </View>
                 );

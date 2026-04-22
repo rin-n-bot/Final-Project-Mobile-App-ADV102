@@ -53,7 +53,6 @@ export default function LoginScreen() {
               return;
           }
 
-          // Create/Update user document on Login
           await setDoc(doc(db, 'users', userCredential.user.uid), {
             uid: userCredential.user.uid,
             email: userCredential.user.email,
@@ -64,7 +63,6 @@ export default function LoginScreen() {
         } else {
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           
-          // Create user document on Registration
           await setDoc(doc(db, 'users', userCredential.user.uid), {
             uid: userCredential.user.uid,
             email: userCredential.user.email,
@@ -99,12 +97,15 @@ export default function LoginScreen() {
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[styles.inner, keyboardVisible && !isLogin ? { paddingTop: 80 } : { paddingTop: 150 }]}>
+          <View style={[styles.inner, keyboardVisible && !isLogin ? { paddingTop: 40 } : { paddingTop: 140 }]}>
             
             <View style={styles.header}>
               <Text style={styles.logo}>Cross<Text style={{color: '#AF0B01'}}>Rent</Text></Text>
-              <View style={styles.quoteBar} />
-              <Text style={styles.quote}>"This platform is exclusively for Holy Cross of Davao College users."</Text>
+              <Text style={styles.heroHeader}>
+                {isLogin ? 'Welcome Back' : 'Create Account'}
+              </Text>
+            <Text style={[styles.quote, { marginTop: 10 }]}>This platform is exclusively for Holy Cross of Davao College users.</Text>
+
             </View>
 
             <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />
@@ -158,6 +159,7 @@ export default function LoginScreen() {
                   source={require('../../../assets/hcdc_logo.png')} 
                   style={styles.footerLogo}
                 />
+                
               </View>
             </View>
           </View>

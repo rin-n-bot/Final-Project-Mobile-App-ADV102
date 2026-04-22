@@ -249,7 +249,7 @@ export default function ChatScreen() {
   shadowOpacity: 0.08,
   shadowRadius: 2,
 
-  elevation: 2, // Android
+  elevation: 1, // Android
             }}
           >
             <Ionicons name="search-outline" size={16} color="#cfd4da" style={{ marginRight: 6 }} />

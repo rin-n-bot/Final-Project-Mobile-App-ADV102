@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { Animated, ScrollView, View, TouchableOpacity, Text, Alert, Modal, SafeAreaView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { signOut } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { db } from '../../firebase';
 import { styles, scale } from '../../app/(tabs)/home/styles';
 import { useDrawer } from '../../context/DrawerContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function DrawerMenu() {
   const router = useRouter();
   const { slideAnim, toggleDrawer, isDrawerOpen } = useDrawer();
+  const { logout } = useAuth();
   const [showGuidelines, setShowGuidelines] = useState(false);
 
   const handleLogout = async () => {
@@ -21,7 +22,7 @@ export function DrawerMenu() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await signOut(auth);
+            await logout();
             toggleDrawer(false);
             router.replace('/(auth)/LoginScreen');
           } catch (error) {
@@ -79,9 +80,15 @@ export function DrawerMenu() {
       )}
 
       <Animated.View
+        pointerEvents={isDrawerOpen ? 'auto' : 'none'}
         style={[
           styles.drawer,
-          { transform: [{ translateX: slideAnim }], zIndex: 999 },
+          { 
+            transform: [{ translateX: slideAnim }], 
+            zIndex: 999,
+            // Optimization: Hide from layout if closed
+            opacity: isDrawerOpen ? 1 : 0 
+          },
         ]}
       >
         <View style={styles.drawerHeader}>
@@ -95,8 +102,6 @@ export function DrawerMenu() {
         </View>
 
         <ScrollView style={styles.drawerItems}>
-
-          {/* Profile — NAVIGATE */}
           <TouchableOpacity
             style={styles.drawerItem}
             onPress={() => {
@@ -108,7 +113,6 @@ export function DrawerMenu() {
             <Text style={styles.drawerItemText}>Profile</Text>
           </TouchableOpacity>
 
-          {/* My Listing */}
           <TouchableOpacity
             style={styles.drawerItem}
             onPress={() => {
@@ -120,7 +124,6 @@ export function DrawerMenu() {
             <Text style={styles.drawerItemText}>My Listing</Text>
           </TouchableOpacity>
 
-          {/* Community Guidelines */}
           <TouchableOpacity 
             style={styles.drawerItem}
             onPress={() => setShowGuidelines(true)}
@@ -129,7 +132,6 @@ export function DrawerMenu() {
             <Text style={styles.drawerItemText}>Community Guidelines</Text>
           </TouchableOpacity>
 
-          {/* Clear Logs */}
           <TouchableOpacity 
             style={styles.drawerItem}
             onPress={handleClearLogs}
@@ -138,7 +140,6 @@ export function DrawerMenu() {
             <Text style={styles.drawerItemText}>Clear Logs</Text>
           </TouchableOpacity>
 
-          {/* Logout */}
           <TouchableOpacity
             style={[styles.drawerItem, { marginTop: 20 }]}
             onPress={handleLogout}
@@ -146,11 +147,9 @@ export function DrawerMenu() {
             <Ionicons name="log-out-outline" size={22} color="#ffffff" />
             <Text style={[styles.drawerItemText, { color: '#ffffff' }]}>Logout</Text>
           </TouchableOpacity>
-
         </ScrollView>
       </Animated.View>
 
-      {/* Guidelines Modal */}
       <Modal
         visible={showGuidelines}
         animationType="slide"
@@ -169,12 +168,12 @@ export function DrawerMenu() {
 
           <ScrollView contentContainerStyle={styles.modalInfoSection}>
             <View style={[styles.infoCard, { padding: scale(20), borderColor: '#F0F0F0', borderWidth: 1 }]}>
-              <Text style={[styles.detailLabel, { color: '#222D31', marginBottom: scale(15) }]}>
+              <Text style={[styles.detailLabel, { color: '#222D31', marginBottom: scale(20) }]}>
                 App Rules & Safety
               </Text>
               
               {guidelines.map((rule, index) => (
-                <View key={index} style={{ flexDirection: 'row', marginBottom: scale(25), alignItems: 'flex-start' }}>
+                <View key={index} style={{ flexDirection: 'row', marginBottom: scale(15), alignItems: 'flex-start' }}>
                   <Ionicons name="checkmark-circle" size={scale(18)} color="#27AE60" style={{ marginTop: 2 }} />
                   <Text style={[styles.detailValue, { flex: 1, marginLeft: scale(10), marginBottom: 0 }]}>
                     {rule}

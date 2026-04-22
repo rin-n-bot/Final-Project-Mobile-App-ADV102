@@ -54,7 +54,7 @@ const s = StyleSheet.create({
   shadowOpacity: 0.08,
   shadowRadius: 2,
 
-  elevation: 2, // Android
+  elevation: 1, // Android
   },
   textArea: { 
     height: 100, 
