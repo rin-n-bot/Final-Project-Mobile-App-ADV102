@@ -3,6 +3,10 @@ import { StyleSheet, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
+
+
+  
+  // MAIN LAYOUT CONTAINERS
   container: { 
     flex: 1, 
     backgroundColor: '#f5f5f5',
@@ -13,6 +17,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingBottom: 30,
   },
+
+
+
+  // HEADER AND TYPOGRAPHY
   header: { 
     alignItems: 'flex-start', 
     marginBottom: 60
@@ -30,7 +38,6 @@ export const styles = StyleSheet.create({
     color: '#222D31',
     letterSpacing: -1.5,
   },
-
   quote: { 
     fontSize: 13, 
     textAlign: 'left',
@@ -39,6 +46,10 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 18
   },
+
+
+
+  // AUTH TOGGLE TABS (LOGIN/SIGNUP SELECTION)
   selectionWrapper: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
@@ -70,6 +81,10 @@ export const styles = StyleSheet.create({
   activeText: {
     color: '#FFFFFF'
   },
+
+
+
+  // FORM AND INPUT FIELDS
   form: {
     width: '100%'
   },
@@ -120,6 +135,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+
+
+
+  // PRIMARY ACTION BUTTONS
   mainActionBtn: {
     backgroundColor: '#AF0B01',
     height: 60,
@@ -139,6 +158,10 @@ export const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1
   },
+
+
+
+  // SECONDARY LINKS AND FOOTER
   forgotBtn: {
     marginTop: 20,
     alignItems: 'center'
@@ -158,4 +181,5 @@ export const styles = StyleSheet.create({
     resizeMode: 'contain',
     opacity: 0.6
   }
+
 });

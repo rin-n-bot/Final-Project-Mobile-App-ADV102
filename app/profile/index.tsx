@@ -27,15 +27,27 @@ import {
 import { auth, db } from '../../firebase';
 import { profileStyles as styles, scale } from './styles';
 
+
+
+// MAIN PROFILE SCREEN COMPONENT
 export default function ProfileScreen() {
+
+
+
+  // NAVIGATION AND ROUTING HOOKS
   const router = useRouter();
   const { viewUserId } = useLocalSearchParams();
   const currentUser = auth.currentUser;
   
-  // Decide if we are viewing our own profile or someone else's
+
+  
+  // DETERMINE PROFILE OWNERSHIP AND TARGET USER ID
   const isViewingOthers = !!viewUserId && viewUserId !== currentUser?.uid;
   const targetId = (isViewingOthers ? viewUserId : currentUser?.uid) as string;
 
+
+
+  // PROFILE DATA AND UI LOADING STATES
   const [profilePicUrl, setProfilePicUrl] = useState('');
   const [bio, setBio] = useState('');
   const [email, setEmail] = useState('');
@@ -46,9 +58,15 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+
+
+  // PERSISTENT STORAGE FOR ORIGINAL DATA COMPARISON
   const originalBio = useRef('');
   const originalPic = useRef('');
 
+
+
+  // DATA INITIALIZATION ON COMPONENT MOUNT OR TARGET CHANGE
   useEffect(() => {
     if (!targetId) return;
     setBio('');
@@ -63,6 +81,9 @@ export default function ProfileScreen() {
     fetchStats();
   }, [targetId]);
 
+
+
+  // FETCH USER PROFILE AND ACCOUNT DETAILS FROM FIRESTORE
   const fetchProfile = async () => {
     try {
       const profileSnap = await getDoc(doc(db, 'profiles', targetId));
@@ -91,12 +112,18 @@ export default function ProfileScreen() {
     }
   };
 
+
+
+  // REAL-TIME LISTENERS FOR USER STATISTICS
   const fetchStats = () => {
     if (!targetId) return;
     onSnapshot(query(collection(db, 'items'), where('ownerId', '==', targetId)), (snap) => setListingsCount(snap.size));
     onSnapshot(query(collection(db, 'transactions'), where('renterId', '==', targetId)), (snap) => setTransactionsCount(snap.size));
   };
 
+
+
+  // PROFILE IMAGE SELECTION FROM LIBRARY
   const handlePickImage = async () => {
     if (isViewingOthers) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -118,11 +145,17 @@ export default function ProfileScreen() {
     }
   };
 
+
+
+  // UPDATE BIO STATE AND CHECK FOR UNSAVED CHANGES
   const handleBioChange = (text: string) => {
     setBio(text);
     setIsDirty(text !== originalBio.current || profilePicUrl !== originalPic.current);
   };
 
+
+
+  // SAVE UPDATED PROFILE DATA TO FIRESTORE
   const handleSave = async () => {
     if (!currentUser || !isDirty || isViewingOthers) return;
     if (bio === originalBio.current && profilePicUrl === originalPic.current) return;
@@ -141,13 +174,22 @@ export default function ProfileScreen() {
     }
   };
 
+
+
+  // GENERATE HEADER TITLE BASED ON VIEWING CONTEXT
   const getHeaderTitle = () => {
     if (!isViewingOthers) return "Profile";
     return email.split('@')[0];
   };
 
+
+
+  // GENERATE INITIALS FOR PLACEHOLDER AVATAR
   const getInitials = () => email?.charAt(0).toUpperCase() ?? '?';
 
+
+
+  // RENDER LOADING STATE
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -159,9 +201,15 @@ export default function ProfileScreen() {
     );
   }
 
+
+
+  // RENDER MAIN PROFILE CONTENT
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      
+
+      {/* TOP NAVIGATION BAR */}
       <View style={styles.topNav}>
         <TouchableOpacity onPress={() => router.back()} style={{ padding: scale(5) }}>
           <Ionicons name="arrow-back" size={scale(24)} color="#222D31" />
@@ -177,6 +225,9 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: scale(40) }}>
+        
+
+        {/* AVATAR AND USER IDENTITY SECTION */}
         <View style={styles.avatarSection}>
           <TouchableOpacity
             style={styles.avatarWrapper}
@@ -201,6 +252,8 @@ export default function ProfileScreen() {
           {memberSince ? <Text style={styles.memberSince}>Member since {memberSince}</Text> : null}
         </View>
 
+
+        {/* STATISTICS SECTION */}
         <View style={styles.section}>
           <View style={styles.statsRow}>
             <View style={[styles.statCard, { backgroundColor: '#ffffff', borderColor: '#cfd4da' }]}>
@@ -214,6 +267,8 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+
+        {/* ACCOUNT INFORMATION SECTION */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Account</Text>
           <View style={styles.infoCard}>
@@ -235,6 +290,8 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+
+        {/* BIO / ABOUT ME SECTION */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Bio</Text>
           <View style={styles.infoCard}>
@@ -257,6 +314,8 @@ export default function ProfileScreen() {
           {!isViewingOthers && <Text style={styles.charCount}>{bio.length}/160</Text>}
         </View>
 
+
+        {/* FLOATING SAVE ACTION BUTTON */}
         {isDirty && !isViewingOthers && (
           <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]} onPress={handleSave} disabled={saving} activeOpacity={0.85}>
             {saving ? <ActivityIndicator color="#FFF" size="small" /> : <Ionicons name="checkmark-circle-outline" size={scale(18)} color="#FFF" />}

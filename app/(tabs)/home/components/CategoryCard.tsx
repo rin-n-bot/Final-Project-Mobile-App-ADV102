@@ -3,12 +3,18 @@ import { TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { styles, scale } from '../styles';
 
+
+
+// INTERFACE FOR CATEGORY CARD PROPS
 interface CategoryCardProps {
   cat: { name: string; icon: string };
   isActive: boolean;
   onPress: () => void;
 }
 
+
+
+// COMPONENT FOR RENDERING INDIVIDUAL CATEGORY SELECTIONS
 export const CategoryCard = ({ cat, isActive, onPress }: CategoryCardProps) => (
   <TouchableOpacity
     onPress={onPress}

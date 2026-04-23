@@ -19,10 +19,14 @@ import {
 import { auth, db } from '../../firebase';
 import s from './styles';
 
+
+
 export default function AddScreen() {
   const router = useRouter();
 
-  // FORM STATE
+
+
+  // FORM STATE MANAGEMENT
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [rentalPeriod, setRentalPeriod] = useState('Day'); // Default duration
@@ -32,11 +36,16 @@ export default function AddScreen() {
   const [status, setStatus] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
+
+
+  // CONFIGURATION OPTIONS
   const categories = ['Laptops', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
   const statusOptions = ['Available', 'Reserved', 'Rented'];
   const durationOptions = ['Hour', 'Day', 'Week', 'Month'];
 
-  // IMAGE PICKER LOGIC
+
+
+  // MEDIA PICKER LOGIC
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
@@ -58,6 +67,9 @@ export default function AddScreen() {
     }
   };
 
+
+
+  // STRING FORMATTING UTILITIES
   const getSlug = (name: string) => {
     const raw = name.toLowerCase().trim();
     const mapping: { [key: string]: string } = {
@@ -70,6 +82,9 @@ export default function AddScreen() {
     return mapping[raw] || raw.replace(/\s+/g, '-');
   };
 
+
+
+  // DATABASE INTERACTION (POSTING)
   const handlePost = async () => {
     if (
       !name.trim() || 
@@ -107,10 +122,15 @@ export default function AddScreen() {
     }
   };
 
+
+
+  // COMPONENT UI RENDER
   return (
     <View style={s.mainWrapper}>
       <StatusBar barStyle="light-content" backgroundColor="#AF0B01" />
       
+
+      {/* HEADER SECTION */}
       <View style={s.redHeader}>
         <SafeAreaView>
           <View style={s.headerContent}>
@@ -131,6 +151,8 @@ export default function AddScreen() {
       >
         <ScrollView contentContainerStyle={s.formContainer} showsVerticalScrollIndicator={false}>
           
+
+          {/* ITEM NAME INPUT */}
           <Text style={s.label}>Item Name</Text>
           <TextInput 
             style={s.input} 
@@ -140,6 +162,8 @@ export default function AddScreen() {
             onChangeText={setName} 
           />
 
+
+          {/* CATEGORY CHIPS */}
           <Text style={s.label}>Category</Text>
           <View style={s.chipGrid}>
             {categories.map((cat) => (
@@ -153,6 +177,8 @@ export default function AddScreen() {
             ))}
           </View>
 
+
+          {/* PRICING INPUT */}
           <Text style={s.label}>Price (₱)</Text>
           <TextInput 
             style={s.input} 
@@ -163,6 +189,8 @@ export default function AddScreen() {
             onChangeText={setPrice} 
           />
 
+
+          {/* RENTAL DURATION CHIPS */}
           <Text style={s.label}>Rental Duration</Text>
           <View style={s.chipGrid}>
             {durationOptions.map((dur) => (
@@ -176,6 +204,8 @@ export default function AddScreen() {
             ))}
           </View>
 
+
+          {/* LOCATION INPUT */}
           <Text style={s.label}>Location</Text>
           <TextInput 
             style={s.input} 
@@ -185,6 +215,8 @@ export default function AddScreen() {
             onChangeText={setLocation} 
           />
 
+
+          {/* STATUS CHIPS */}
           <Text style={s.label}>Status</Text>
           <View style={s.chipGrid}>
             {statusOptions.map((opt) => (
@@ -198,6 +230,8 @@ export default function AddScreen() {
             ))}
           </View>
 
+
+          {/* DESCRIPTION AREA */}
           <Text style={s.label}>Description</Text>
           <TextInput 
             style={[s.input, s.textArea]} 
@@ -209,6 +243,8 @@ export default function AddScreen() {
             onChangeText={setDescription} 
           />
 
+
+          {/* IMAGE SELECTION BUTTON */}
           <Text style={s.label}>Item Image</Text>
           <TouchableOpacity style={s.imageButton} onPress={pickImage} activeOpacity={0.8}>
             {imageUrl ? (
@@ -221,12 +257,15 @@ export default function AddScreen() {
             )}
           </TouchableOpacity>
 
+
+          {/* FOOTER INFO */}
           <View style={s.centeredFooter}>
             <View style={s.infoBox}>
               <Ionicons name="mail-outline" size={14} color="#999" />
               <Text style={s.infoText}>Posting as: {auth.currentUser?.email}</Text>
             </View>
           </View>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

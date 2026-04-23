@@ -2,10 +2,14 @@ import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-// --- SCALE SYSTEM ---
+
+
+// SCALE SYSTEM
 export const scale = (size: number) => (width / 375) * size;
 
-// --- SPACING ---
+
+
+// SPACING
 export const SPACING = {
   xs: scale(4),
   sm: scale(8),
@@ -15,7 +19,9 @@ export const SPACING = {
   xxl: scale(30),
 };
 
-// --- COLORS ---
+
+
+// COLORS
 export const COLORS = {
   primary: '#222D31',
   accent: '#AF0B01',
@@ -27,7 +33,9 @@ export const COLORS = {
   lightBackground: '#F0F0F0',
 };
 
-// --- TYPOGRAPHY ---
+
+
+// TYPOGRAPHY
 export const TYPOGRAPHY = {
   title: {
     fontSize: scale(24),
@@ -50,7 +58,9 @@ export const TYPOGRAPHY = {
   },
 };
 
-// --- LAYOUT TOKENS ---
+
+
+// LAYOUT TOKENS
 export const LAYOUT = {
   horizontalPadding: scale(20),
   borderRadius: scale(15),

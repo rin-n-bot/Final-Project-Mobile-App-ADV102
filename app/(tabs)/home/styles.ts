@@ -8,7 +8,10 @@ const GAP = scale(12);
 export const CARD_WIDTH = (width - (HORIZONTAL_PADDING * 2) - GAP) / 2;
 
 export const styles = StyleSheet.create({
-  // --- LAYOUT & GLOBAL ---
+
+
+
+  // LAYOUT & GLOBAL
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -20,7 +23,9 @@ export const styles = StyleSheet.create({
     marginBottom: scale(20),
   },
 
-  // --- DRAWER NAVIGATION ---
+
+
+  // DRAWER NAVIGATION
   backdrop: {
     position: 'absolute',
     top: 0,
@@ -61,7 +66,9 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // --- TOP NAVIGATION ---
+
+
+  // TOP NAVIGATION
   topNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -85,7 +92,9 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // --- GREETING & CAMPUS TOGGLE ---
+
+
+  // GREETING & CAMPUS TOGGLE
   greetingContainer: {
     paddingHorizontal: HORIZONTAL_PADDING,
     paddingTop: scale(10),
@@ -112,7 +121,9 @@ export const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
 
-  // --- SEARCH SECTION ---
+
+  
+  // SEARCH SECTION
   searchSection: {
     paddingHorizontal: HORIZONTAL_PADDING,
     marginBottom: scale(20),
@@ -121,18 +132,12 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: scale(55),
-    borderRadius: 15,
+    borderRadius: 25,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#ffffff',
-    backgroundColor: '#FFFFFF',
-      // 👇 LIGHT SHADOW
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 2,
+    borderColor: '#d9dfe665',
+    backgroundColor: '#d9dfe665',
 
-  elevation: 1, // Android
   },
   searchInput: {
     flex: 1,
@@ -140,7 +145,9 @@ export const styles = StyleSheet.create({
     color: '#1D3557',
   },
 
-  // --- CATEGORY GRID ---
+
+
+  // CATEGORY GRID
   sectionLabel: {
     paddingHorizontal: HORIZONTAL_PADDING,
     fontSize: scale(15),
@@ -181,7 +188,9 @@ export const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // --- LISTING CARDS — no border, white bg floats on #F5F5F5 ---
+
+
+  // LISTING CARDS
   scrollContent: { paddingBottom: scale(100) },
   gridContainer: {
     flexDirection: 'row',
@@ -195,7 +204,6 @@ export const styles = StyleSheet.create({
     borderRadius: scale(12),
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    // No border — card stands out against #F5F5F5 background
   },
   imageContainer: {
     width: '100%',
@@ -228,7 +236,7 @@ export const styles = StyleSheet.create({
     marginBottom: scale(4),
   },
   cardPricePlain: {
-    fontSize: scale(14),
+    fontSize: scale(16),
     fontWeight: '800',
     color: '#222D31',
   },
@@ -239,7 +247,9 @@ export const styles = StyleSheet.create({
     textTransform: 'lowercase',
   },
 
-  // --- STATUS & LOADER ---
+
+  
+  // STATUS & LOADER
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -274,7 +284,9 @@ export const styles = StyleSheet.create({
     marginBottom: scale(10),
   },
 
-  // --- ITEM MODAL DETAILS ---
+
+
+  // ITEM MODAL DETAILS
   modalContainer: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -371,6 +383,10 @@ export const styles = StyleSheet.create({
     fontSize: scale(15),
     fontWeight: '800',
   },
+
+
+
+  // INFO CARD
   infoCard: {
   backgroundColor: '#FFFFFF',
   borderRadius: scale(12),
@@ -379,7 +395,7 @@ export const styles = StyleSheet.create({
   overflow: 'hidden',
 },
 
-infoRow: {
+  infoRow: {
   flexDirection: 'row',
   alignItems: 'center',
   paddingHorizontal: scale(15),
@@ -388,21 +404,21 @@ infoRow: {
   borderBottomColor: '#F0F0F0',
 },
 
-infoRowLast: {
+  infoRowLast: {
   borderBottomWidth: 0,
 },
 
-infoTextBlock: {
+  infoTextBlock: {
   flex: 1,
 },
 
-infoRowLabel: {
+  infoRowLabel: {
   fontSize: scale(13),
   fontWeight: '800',
   color: '#9CA3AF',
 },
 
-infoRowValue: {
+  infoRowValue: {
   fontSize: scale(16),
   fontWeight: '600',
   color: '#222D31',

@@ -2,7 +2,10 @@ import { addDoc, collection, doc, serverTimestamp, updateDoc, getDocs, query, wh
 import { db, auth } from '../firebase';
 
 export const handleRentRequest = async (item: any, user: any) => {
-  // 1. Create the Transaction
+
+
+
+  // Create the Transaction
   const transRef = await addDoc(collection(db, "transactions"), {
     itemId: item.id,
     itemName: item.name || item.title,
@@ -15,14 +18,19 @@ export const handleRentRequest = async (item: any, user: any) => {
     itemDeleted: false,
   });
 
-  // 2. Update Item Status to Pending
+
+
+
+  // Update Item Status to Pending
   const itemRef = doc(db, "items", item.id);
   await updateDoc(itemRef, {
     status: "Pending",
     currentTransactionId: transRef.id
   });
 
-  // 3. Log
+
+
+  // Log
   await addDoc(collection(db, "logs"), {
     action: "requested",
     by: user.uid,
@@ -46,10 +54,14 @@ export const updateTransactionStatus = async (
 
   const transRef = doc(db, "transactions", transactionId);
 
-  // 1. Update transaction status
+
+
+  // Update transaction status
   await updateDoc(transRef, { status: newStatus });
 
-  // 2. Update item ONLY if it still exists (guard against deleted items)
+
+
+  // Update item ONLY if it still exists (guard against deleted items)
   try {
     const itemRef = doc(db, "items", itemId);
     if (newStatus === "rented") {
@@ -66,7 +78,9 @@ export const updateTransactionStatus = async (
     }
   }
 
-  // 3. Determine role accurately
+
+
+  // Determine role accurately
   const role =
     newStatus === "cancelled"
       ? "renter"
@@ -74,7 +88,9 @@ export const updateTransactionStatus = async (
       ? "owner"
       : "owner";
 
-  // 4. Log
+
+
+  // Log
   await addDoc(collection(db, "logs"), {
     action: newStatus,
     by: user.uid,
@@ -85,6 +101,8 @@ export const updateTransactionStatus = async (
   });
 };
 
+
+
 // Called when owner deletes an item
 export const handleItemDelete = async (itemId: string, itemName: string) => {
   const user = auth.currentUser;
@@ -92,7 +110,9 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
 
   const batch = writeBatch(db);
 
-  // 1. Find all active transactions for this item
+
+
+  // Find all active transactions for this item
   const q = query(
     collection(db, "transactions"),
     where("itemId", "==", itemId),
@@ -100,7 +120,9 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
   );
   const snapshot = await getDocs(q);
 
-  // 2. Mark each transaction as item deleted (do NOT change status so they stay in lending/borrowing tabs)
+
+
+  // Mark each transaction as item deleted (do NOT change status so they stay in lending/borrowing tabs)
   snapshot.forEach((txDoc) => {
     batch.update(txDoc.ref, {
       itemDeleted: true,
@@ -108,14 +130,20 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
     });
   });
 
-  // 3. Delete the item doc
+
+
+  // Delete the item doc
   const itemRef = doc(db, "items", itemId);
   batch.delete(itemRef);
 
-  // 4. Commit atomically
+
+
+  // Commit atomically
   await batch.commit();
 
-  // 5. Log
+
+
+  // Log
   await addDoc(collection(db, "logs"), {
     action: "item_deleted",
     by: user.uid,
@@ -127,12 +155,16 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
   });
 };
 
+
+
 // Called when a user dismisses/deletes a transaction card marked as itemDeleted
 export const deleteTransactionRecord = async (transactionId: string, itemId: string, itemName: string) => {
   const user = auth.currentUser;
   if (!user) return;
 
-  // 1. Log BEFORE deleting so the record exists
+
+
+  // Log BEFORE deleting so the record exists
   await addDoc(collection(db, "logs"), {
     action: "transaction_dismissed",
     by: user.uid,
@@ -142,6 +174,8 @@ export const deleteTransactionRecord = async (transactionId: string, itemId: str
     createdAt: serverTimestamp(),
   });
 
-  // 2. Delete the transaction document
+
+  
+  // Delete the transaction document
   await deleteDoc(doc(db, "transactions", transactionId));
 };

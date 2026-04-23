@@ -176,19 +176,28 @@ export default function MessageScreen() {
     const user = auth.currentUser;
     setInputText('');
     try {
-      await addDoc(collection(db, 'chats', chatId as string, 'messages'), {
+      // [GHOST-FIX-2] Create message first
+      const messageRef = await addDoc(collection(db, 'chats', chatId as string, 'messages'), {
         text: messageToSend,
         senderId: user?.uid,
         senderEmail: user?.email,
         createdAt: serverTimestamp(),
       });
+
+      // [GHOST-FIX-2] Only update metadata if message was created successfully
+      if (!messageRef.id) {
+        throw new Error('Failed to create message');
+      }
+
       await updateDoc(doc(db, 'chats', chatId as string), {
         lastMessage: messageToSend,
         lastSenderEmail: user?.email,
         updatedAt: serverTimestamp(),
         readBy: [user?.uid],
       });
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error('[GHOST-FIX-2] sendMessage error:', e);
+    }
   };
 
   const navigateToProfile = () => {

@@ -3,6 +3,7 @@ import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { styles } from '../styles';
 
+
 interface InputFieldProps {
   label: string;
   placeholder: string;
@@ -14,6 +15,7 @@ interface InputFieldProps {
   onToggleVisibility?: () => void;
 }
 
+
 export const InputField = ({ 
   label, 
   placeholder, 
@@ -23,12 +25,19 @@ export const InputField = ({
   showPasswordToggle, 
   isPasswordVisible, 
   onToggleVisibility 
-}: InputFieldProps) => (
+}: 
+
+InputFieldProps) => (
+
+
   <View style={styles.inputBox}>
     <View style={styles.labelWrapper}>
       <Text style={styles.inputLabel}>{label}</Text>
     </View>
+
+
     {showPasswordToggle ? (
+
       <View style={styles.passwordInputContainer}>
         <TextInput 
           style={{ flex: 1, color: '#1D3557', fontSize: 16 }}
@@ -38,11 +47,14 @@ export const InputField = ({
           value={value}
           onChangeText={onChangeText}
         />
+        
         <TouchableOpacity onPress={onToggleVisibility}>
           <Ionicons name={isPasswordVisible ? "eye" : "eye-off"} size={20} color="#222D31" />
         </TouchableOpacity>
+
       </View>
     ) : (
+
       <TextInput 
         placeholder={placeholder} 
         style={styles.input}
@@ -52,5 +64,6 @@ export const InputField = ({
         onChangeText={onChangeText}
       />
     )}
+    
   </View>
 );

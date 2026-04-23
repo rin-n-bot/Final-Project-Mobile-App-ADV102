@@ -2,10 +2,17 @@ import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
+
+
+// SCALING AND LAYOUT UTILITIES
 export const scale = (size: number) => (width / 375) * size;
 const HORIZONTAL_PADDING = scale(20);
 
+
+
 export const transStyles = StyleSheet.create({
+
+  // SCREEN AND TOP NAVIGATION
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -23,15 +30,22 @@ export const transStyles = StyleSheet.create({
     color: '#222D31',
     letterSpacing: -1,
   },
-  // Card — white on #F5F5F5, no border needed
+
+
+
+  // TRANSACTION CARD BASE
   card: {
     width: '100%',
-    marginBottom: scale(15),
+    marginBottom: scale(10),
     borderRadius: scale(12),
     backgroundColor: '#FFF',
     padding: scale(15),
     overflow: 'hidden',
   },
+
+
+
+  // CARD CONTENT AND TYPOGRAPHY
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -49,6 +63,10 @@ export const transStyles = StyleSheet.create({
     color: '#9CA3AF',
     marginBottom: scale(4),
   },
+
+
+
+  // STATUS INDICATORS AND BADGES
   statusBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -59,6 +77,10 @@ export const transStyles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
   },
+
+
+
+  // ACTION BUTTONS AND INTERACTION
   messageBtn: {
     borderRadius: 12,
     flexDirection: 'row',
@@ -70,9 +92,14 @@ export const transStyles = StyleSheet.create({
     fontSize: scale(14),
     fontWeight: '800',
   },
+
+
+
+  // EMPTY STATE AND FALLBACKS
   noResultsText: {
     fontSize: scale(14),
     color: '#cfd4da',
     fontWeight: '700',
   },
+
 });

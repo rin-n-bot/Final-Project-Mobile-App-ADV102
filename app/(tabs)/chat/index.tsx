@@ -1,35 +1,35 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StatusBar,
-  SafeAreaView,
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Animated,
-  TextInput,
-} from 'react-native';
-
-const { width } = Dimensions.get('window');
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { db, auth } from '../../../firebase';
 import {
   collection,
-  query,
-  onSnapshot,
+  deleteDoc,
   doc,
-  where,
   getDoc,
   getDocs,
-  deleteDoc,
+  onSnapshot,
+  query,
+  where,
 } from 'firebase/firestore';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { auth, db } from '../../../firebase';
+import { scale, transStyles as styles } from '../transactions/styles';
 import { chatStyles } from './styles';
-import { transStyles as styles, scale } from '../transactions/styles';
-import { Image } from 'expo-image';
+
+const { width } = Dimensions.get('window');
 
 // --- TIME LABEL ---
 const formatTimeLabel = (seconds: number): string => {
@@ -54,6 +54,67 @@ const formatTimeLabel = (seconds: number): string => {
     day: 'numeric',
     ...(sameYear ? {} : { year: 'numeric' }),
   });
+};
+
+// [GHOST-FIX-3-CHAT] Forced cleanup function that runs on chat screen load
+const cleanupGhostChatsOnChatLoad = async (userId: string) => {
+  try {
+    console.log('[GHOST-FIX-3-CHAT] Starting cleanup...');
+    const chatsQuery = query(
+      collection(db, 'chats'),
+      where('participants', 'array-contains', userId)
+    );
+    const chatsSnap = await getDocs(chatsQuery);
+    let deletedCount = 0;
+
+    console.log(`[GHOST-FIX-3-CHAT] Found ${chatsSnap.size} chats total`);
+
+    for (const chatDoc of chatsSnap.docs) {
+      const chatData = chatDoc.data();
+      const hasParticipants = chatData.participants && Array.isArray(chatData.participants);
+      const hasUpdatedAt = chatData.updatedAt;
+      const hasLastMessage = chatData.lastMessage;
+      const hasSenderEmail = chatData.lastSenderEmail;
+
+      const messagesQuery = collection(db, 'chats', chatDoc.id, 'messages');
+      const messagesSnap = await getDocs(messagesQuery);
+
+      // [GHOST-FIX-3-CHAT] Delete ghost chats (missing fields OR no messages)
+      const shouldDelete =
+        !hasParticipants ||
+        !hasUpdatedAt ||
+        !hasLastMessage ||
+        !hasSenderEmail ||
+        messagesSnap.empty;
+
+      // [GHOST-FIX-3-CHAT] Log ALL chats to find the remaining one
+      console.log(`[GHOST-FIX-3-CHAT] Chat ${chatDoc.id}:`, {
+        hasParticipants,
+        hasUpdatedAt,
+        hasLastMessage,
+        hasSenderEmail,
+        messageCount: messagesSnap.size,
+        shouldDelete,
+      });
+
+      if (shouldDelete) {
+        console.warn(
+          `[GHOST-FIX-3-CHAT] 🗑️ DELETING: ${chatDoc.id}`,
+          { hasParticipants, hasUpdatedAt, hasLastMessage, hasSenderEmail, hasMessages: !messagesSnap.empty }
+        );
+        await deleteDoc(chatDoc.ref);
+        deletedCount++;
+      }
+    }
+
+    if (deletedCount > 0) {
+      console.log(`[GHOST-FIX-3-CHAT] ✅ Cleaned up ${deletedCount} ghost(s)`);
+    } else {
+      console.log('[GHOST-FIX-3-CHAT] ℹ️ No ghosts to delete');
+    }
+  } catch (error) {
+    console.error('[GHOST-FIX-3-CHAT] Error:', error);
+  }
 };
 
 type ChatTab = 'listing' | 'renting';
@@ -87,6 +148,9 @@ export default function ChatScreen() {
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
+
+    // [GHOST-FIX-3-CHAT] Run cleanup immediately when chat screen loads
+    cleanupGhostChatsOnChatLoad(user.uid);
 
     const q = query(
       collection(db, 'chats'),
@@ -165,31 +229,42 @@ export default function ChatScreen() {
     );
   };
 
-  const handleDeleteSelected = () => {
-    if (selectedChatIds.length === 0) return;
-    Alert.alert(
-      'Delete Conversations',
-      `Delete ${selectedChatIds.length} conversation(s)?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              for (const id of selectedChatIds) {
-                await deleteDoc(doc(db, 'chats', id));
-              }
-              setIsSelectionMode(false);
-              setSelectedChatIds([]);
-            } catch (error) {
-              console.error(error);
+const handleDeleteSelected = () => {
+  if (selectedChatIds.length === 0) return;
+  Alert.alert(
+    'Delete Conversations',
+    `This will permanently delete ${selectedChatIds.length} conversation(s).`,
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            for (const id of selectedChatIds) {
+              // 1. Get all messages in the sub-collection
+              const messagesRef = collection(db, 'chats', id, 'messages');
+              const messagesSnap = await getDocs(messagesRef);
+              
+              // 2. Delete every message (Firestore requires manual deletion of sub-collections)
+              const deletePromises = messagesSnap.docs.map(mDoc => deleteDoc(mDoc.ref));
+              await Promise.all(deletePromises);
+
+              // 3. Finally, delete the parent chat document
+              await deleteDoc(doc(db, 'chats', id));
             }
-          },
+            setIsSelectionMode(false);
+            setSelectedChatIds([]);
+          } catch (error) {
+            console.error("Error deleting chat:", error);
+          }
         },
-      ]
-    );
-  };
+      },
+    ]
+  );
+};
+
+
 
   return (
     <SafeAreaView
@@ -236,23 +311,17 @@ export default function ChatScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: '#ffffff',
-              borderRadius: 10,
-              borderColor: '#ffffff',
+              backgroundColor: '#d9dfe665',
+              borderRadius: 20,
+              borderColor: '#d9dfe665',
               borderWidth: 1,
               paddingHorizontal: scale(10),
               height: scale(44),
 
-                // 👇 LIGHT SHADOW
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 2,
 
-  elevation: 1, // Android
             }}
           >
-            <Ionicons name="search-outline" size={16} color="#cfd4da" style={{ marginRight: 6 }} />
+            <Ionicons name="search-outline" size={16} color="#222D31" style={{ marginRight: 6 }} />
             <TextInput
               ref={searchInputRef}
               value={searchQuery}

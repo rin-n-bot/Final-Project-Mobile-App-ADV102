@@ -1,3 +1,5 @@
+
+// IMPORTS
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -16,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import { GREETING_QUOTES } from '../../../constants/quotes';
 import { useDrawer } from '../../../context/DrawerContext';
 import { auth, db } from '../../../firebase';
@@ -24,8 +27,20 @@ import { CategoryCard } from '../home/components/CategoryCard';
 import { ListingCard } from '../home/components/ListingCard';
 import { scale, styles } from './styles';
 
+
+
+// MAIN COMPONENT
 export default function HomeScreen() {
+
+
+  // CONTEXT & NAVIGATION
   const { toggleDrawer, isDrawerOpen } = useDrawer();
+  const router = useRouter();
+  const user = auth.currentUser;
+
+
+
+  // STATE VARIABLES
   const [activeCategory, setActiveCategory] = useState('All');
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,12 +53,15 @@ export default function HomeScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
 
+
+
+  // ANIMATIONS
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const arrowRotate = useRef(new Animated.Value(0)).current;
 
-  const router = useRouter();
-  const user = auth.currentUser;
 
+
+  // USER PROFILE FETCH
   useEffect(() => {
     if (!user) return;
     setUserEmail(user.email || '');
@@ -56,6 +74,9 @@ export default function HomeScreen() {
     return unsub;
   }, [user]);
 
+
+
+  // HELPER FUNCTIONS
   const formatCategoryName = (id: string) => {
     if (id === 'All') return 'All';
     return id
@@ -64,6 +85,9 @@ export default function HomeScreen() {
       .join(' ');
   };
 
+
+
+  // FETCH CATEGORIES
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'categories'), (snapshot) => {
       const fetchedCats = snapshot.docs.map((doc) => ({
@@ -76,6 +100,9 @@ export default function HomeScreen() {
     return () => unsub();
   }, []);
 
+
+
+  // FETCH LISTINGS
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
       const q = query(collection(db, 'items'), orderBy('createdAt', 'desc'));
@@ -108,6 +135,9 @@ export default function HomeScreen() {
     return () => task.cancel();
   }, []);
 
+
+
+  // GREETING QUOTES ROTATION
   useEffect(() => {
     const quoteInterval = setInterval(() => {
       Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start(() => {
@@ -118,6 +148,9 @@ export default function HomeScreen() {
     return () => clearInterval(quoteInterval);
   }, []);
 
+
+
+  // EVENT HANDLERS
   const handleCategoryPress = (categoryId: string) => {
     if (categoryId === activeCategory) return;
     setIsLoading(true);
@@ -136,6 +169,9 @@ export default function HomeScreen() {
     setShowFullMeaning(!showFullMeaning);
   };
 
+
+
+  // FILTER LOGIC
   const filteredListings = listings.filter((item) => {
     const itemCatId = (item.categoryId || '').toLowerCase().trim();
     const itemCatString = (item.category || '').toLowerCase().trim();
@@ -156,23 +192,38 @@ export default function HomeScreen() {
     return matchesCategory && matchesSearch;
   });
 
+
+
+  // ANIMATION INTERPOLATION
   const arrowRotation = arrowRotate.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
   });
 
+
+
+  // RENDER
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
       <SafeAreaView style={[styles.container, { backgroundColor: '#F5F5F5' }]}>
+
+
+        {/* STATUS BAR */}
         <StatusBar
           barStyle={isDrawerOpen || selectedItem ? 'light-content' : 'dark-content'}
         />
+
+
+        {/* MODAL */}
         <ModalItemDetails selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
 
+
+        {/* TOP NAVIGATION */}
         <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }]}>
           <TouchableOpacity onPress={() => toggleDrawer(true)}>
             <Ionicons name="menu-outline" size={scale(28)} color="#222D31" />
           </TouchableOpacity>
+
           <Text style={styles.logoMini}>
             Cross<Text style={{ color: '#AF0B01' }}>Rent</Text>
           </Text>
@@ -206,6 +257,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+
+        {/* MAIN CONTENT */}
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -218,6 +271,9 @@ export default function HomeScreen() {
             />
           }
         >
+
+
+          {/* GREETING */}
           <View style={styles.greetingContainer}>
             <TouchableOpacity
               onPress={toggleHCDC}
@@ -227,6 +283,7 @@ export default function HomeScreen() {
               <Text style={[styles.hcdcText, showFullMeaning && { color: '#AF0B01' }]}>
                 {showFullMeaning ? 'Holy Cross of Davao College' : 'HCDC'}
               </Text>
+
               <Animated.View style={{ transform: [{ rotate: arrowRotation }] }}>
                 <Ionicons
                   name="chevron-down"
@@ -235,17 +292,20 @@ export default function HomeScreen() {
                 />
               </Animated.View>
             </TouchableOpacity>
+
             <Animated.Text style={[styles.greetingText, { opacity: fadeAnim, letterSpacing: -1 }]}>
               {GREETING_QUOTES[quoteIndex]}
             </Animated.Text>
           </View>
 
+
+          {/* SEARCH */}
           <View style={styles.searchSection}>
-            <View style={[styles.searchBar, { backgroundColor: '#FFFFFF' }]}>
+            <View style={[styles.searchBar, { backgroundColor: '#d9dfe665' }]}>
               <Ionicons
                 name="search-outline"
                 size={scale(20)}
-                color="#cfd4da"
+                color="#222D31"
                 style={{ marginRight: 10 }}
               />
               <TextInput
@@ -258,6 +318,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
+
+          {/* CATEGORIES */}
           <Text style={styles.sectionLabel}>Categories</Text>
           <ScrollView 
             horizontal 
@@ -277,6 +339,8 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
 
+
+          {/* LIST TITLE */}
           <Text style={styles.sectionLabel}>
             {searchQuery.length > 0
               ? `Results for "${searchQuery}"`
@@ -285,6 +349,8 @@ export default function HomeScreen() {
               : formatCategoryName(activeCategory)}
           </Text>
 
+
+          {/* LISTINGS */}
           {isLoading ? (
             <View style={{ paddingVertical: 40, justifyContent: 'center', alignItems: 'center' }}>
               <ActivityIndicator size="large" color="#AF0B01" />
@@ -307,9 +373,12 @@ export default function HomeScreen() {
             </View>
           )}
 
+
+          {/* END OF LIST */}
           {!isLoading && filteredListings.length > 0 && (
             <Text style={styles.endOfListText}>No more listings.</Text>
           )}
+
         </ScrollView>
       </SafeAreaView>
     </View>

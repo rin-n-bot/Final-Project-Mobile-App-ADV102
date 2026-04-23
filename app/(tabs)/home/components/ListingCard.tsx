@@ -2,11 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { styles } from '../styles';
 
+
+
+// INTERFACE FOR LISTING CARD PROPS
 interface ListingCardProps {
   item: any;
   onPress: () => void;
 }
 
+
+
+// COMPONENT FOR RENDERING PRODUCT OR SERVICE LISTINGS
 export const ListingCard = ({ item, onPress }: ListingCardProps) => (
   <TouchableOpacity style={styles.card} activeOpacity={0.7} onPress={onPress}>
     <View style={styles.imageContainer}>
@@ -23,11 +29,12 @@ export const ListingCard = ({ item, onPress }: ListingCardProps) => (
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>{item.name || item.title}</Text>
       
-      {/* DYNAMIC PRICE AND DURATION */}
+
+      {/* SECTION FOR PRICE AND RENTAL DURATION DISPLAY */}
       <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
         <Text style={styles.cardPricePlain}>{item.price}</Text>
         {item.rentalPeriod && (
-          <Text style={[styles.cardPricePlain, { fontSize: 12 }]}> / {item.rentalPeriod.toLowerCase()}</Text>
+          <Text style={[styles.cardPricePlain, { fontSize: 12, color: '#1976D2' }]}> / {item.rentalPeriod.toLowerCase()}</Text>
         )}
       </View>
     </View>

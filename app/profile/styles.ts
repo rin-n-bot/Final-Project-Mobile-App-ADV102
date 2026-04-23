@@ -1,16 +1,28 @@
 import { Dimensions, Platform, StatusBar, StyleSheet } from 'react-native';
 
+
+
+// UTILITY: SCREEN DIMENSIONS AND SCALING CALCULATION
 const { width } = Dimensions.get('window');
 export const scale = (size: number) => (width / 375) * size;
 
+
+
+// STYLESHEET: PROFILE SCREEN STYLING
 export const profileStyles = StyleSheet.create({
+
+
+
+  // CORE CONTAINER STYLES
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
 
-  // TOP NAV — exact match to home/transactions
+
+
+  // TOP NAVIGATION HEADER STYLES
   topNav: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -31,14 +43,15 @@ export const profileStyles = StyleSheet.create({
     color: '#AF0B01',
   },
 
-  // AVATAR SECTION
+
+
+  // PROFILE AVATAR SECTION STYLES
   avatarSection: {
     alignItems: 'center',
     marginTop: scale(30),
     paddingTop: scale(28),
     paddingBottom: scale(24),
     paddingHorizontal: scale(20),
-
   },
   avatarWrapper: {
     position: 'relative',
@@ -76,7 +89,9 @@ export const profileStyles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
 
-  // USERNAME — same weight/color as greetingText in home
+
+
+  // USER IDENTITY TEXT STYLES
   userName: {
     fontSize: scale(18),
     fontWeight: '800',
@@ -84,7 +99,6 @@ export const profileStyles = StyleSheet.create({
     letterSpacing: -0.5,
     textTransform: 'lowercase',
   },
-  // EMAIL — same as cardTimestamp in home
   userEmail: {
     fontSize: scale(12),
     fontWeight: '700',
@@ -92,7 +106,6 @@ export const profileStyles = StyleSheet.create({
     marginTop: scale(3),
     textTransform: 'lowercase',
   },
-  // MEMBER SINCE — same as endOfListText in home
   memberSince: {
     fontSize: scale(12),
     fontWeight: '700',
@@ -100,7 +113,9 @@ export const profileStyles = StyleSheet.create({
     marginTop: scale(4),
   },
 
-  // STATS — same card border as home listing cards
+
+
+  // STATISTICS COMPONENT STYLES
   statsRow: {
     flexDirection: 'row',
     marginTop: scale(50),
@@ -109,7 +124,6 @@ export const profileStyles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-
     borderRadius: scale(12),
     paddingVertical: scale(14),
     alignItems: 'center',
@@ -129,7 +143,9 @@ export const profileStyles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // SECTION LABEL — same as home sectionLabel
+
+
+  // SECTION WRAPPER AND LABEL STYLES
   section: {
     paddingHorizontal: scale(20),
     paddingTop: scale(12),
@@ -142,7 +158,9 @@ export const profileStyles = StyleSheet.create({
     marginBottom: scale(10),
   },
 
-  // INFO CARD — same border/radius as home listing card
+
+
+  // DATA LIST CARD AND ROW STYLES
   infoCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: scale(12),
@@ -167,15 +185,12 @@ export const profileStyles = StyleSheet.create({
   infoTextBlock: {
     flex: 1,
   },
-  // ROW LABEL — same as cardCategory in home (muted uppercase)
   infoRowLabel: {
     fontSize: scale(13),
     fontWeight: '700',
     color: '#9CA3AF',
-
     letterSpacing: 0,
   },
-  // ROW VALUE — same as cardTitle in home
   infoRowValue: {
     fontSize: scale(16),
     fontWeight: '600',
@@ -183,10 +198,11 @@ export const profileStyles = StyleSheet.create({
     marginTop: scale(2),
   },
 
-  // BIO INPUT — same font as cardTitle
+
+
+  // FORM INPUT AND BIO STYLES
   bioInput: {
     fontSize: scale(16),
-
     color: '#222D31',
     marginTop: scale(2),
     padding: 0,
@@ -200,7 +216,9 @@ export const profileStyles = StyleSheet.create({
     textAlign: 'right',
   },
 
-  // SAVE BUTTON — exact match to home messageBtn
+
+
+  // PRIMARY ACTION BUTTON STYLES
   saveBtn: {
     marginHorizontal: scale(20),
     marginTop: scale(28),

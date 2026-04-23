@@ -1,5 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -15,23 +26,16 @@ import {
 import { scale, styles } from '../(tabs)/home/styles';
 import { auth, db } from '../../firebase';
 import { handleRentRequest } from '../../services/transactionService';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  addDoc,
-  serverTimestamp,
-  doc,
-  updateDoc,
-  getDoc,
-} from 'firebase/firestore';
 
+
+// INTERFACE FOR COMPONENT PROPS
 interface ModalItemDetailsProps {
   selectedItem: any;
   setSelectedItem: (item: any) => void;
 }
 
+
+// UTILITY FUNCTION FOR DATE FORMATTING
 const formatPostedDate = (raw: any): string => {
   let date: Date | null = null;
   if (!raw) return 'Recently';
@@ -50,15 +54,23 @@ const formatPostedDate = (raw: any): string => {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+
+// MAIN COMPONENT MODULE
 export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDetailsProps) => {
+
+
+  // NAVIGATION AND AUTHENTICATION HOOKS
   const router = useRouter();
   const user = auth.currentUser;
   const isOwner = user?.uid === selectedItem?.ownerId;
 
+
+  // COMPONENT STATE MANAGEMENT
   const [ownerPhoto, setOwnerPhoto] = useState<string | null>(null);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
+  // EFFECT TO FETCH OWNER PROFILE IMAGE
   useEffect(() => {
     if (!selectedItem?.ownerId) return;
     setOwnerPhoto(null);
@@ -67,6 +79,8 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
     });
   }, [selectedItem?.ownerId]);
 
+
+  // LOGIC TO DETERMINE BUTTON ACTION BASED ON OWNERSHIP
   const handleActionTrigger = () => {
     if (!user) {
       Alert.alert('Authentication', 'Please log in to continue.');
@@ -87,9 +101,11 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       return;
     }
 
-    setShowDisclaimer(true);
+    processRentalRequest();
   };
 
+
+  // FIREBASE LOGIC FOR PROCESSING RENTAL REQUESTS
   const processRentalRequest = async () => {
     setLoading(true);
     try {
@@ -106,7 +122,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
           'Notice',
           'You already have an active request or an ongoing rental for this item. Check your Transactions.'
         );
-        setShowDisclaimer(false);
+
         setLoading(false);
         return;
       }
@@ -118,15 +134,13 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       const q = query(chatsRef, where('participants', '==', participants));
       const chatQuerySnapshot = await getDocs(q);
 
+      // [GHOST-FIX-1] Determine chatId without creating the document yet
       let chatId: string;
+      let isNewChat = false;
       if (chatQuerySnapshot.empty) {
-        const newChatDoc = await addDoc(chatsRef, {
-          participants,
-          lastMessage: `Rental Request: ${selectedItem.name}`,
-          lastSenderEmail: user!.email,
-          updatedAt: serverTimestamp(),
-        });
-        chatId = newChatDoc.id;
+        // Generate ID but don't create doc yet - prevents ghost docs if message creation fails
+        chatId = doc(collection(db, 'chats')).id;
+        isNewChat = true;
       } else {
         chatId = chatQuerySnapshot.docs[0].id;
       }
@@ -139,7 +153,8 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         `Date/Time: ${timestamp}\n\n` +
         `Check status in Transactions.`;
 
-      await addDoc(collection(db, 'chats', chatId, 'messages'), {
+      // [GHOST-FIX-1] Add message FIRST (this auto-creates parent doc if new)
+      const messageRef = await addDoc(collection(db, 'chats', chatId, 'messages'), {
         text: requestMessage,
         senderId: user!.uid,
         senderEmail: user!.email,
@@ -147,13 +162,25 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         isSystem: true,
       });
 
-      await updateDoc(doc(db, 'chats', chatId), {
-        lastMessage: `Requested: ${selectedItem.name}`,
-        lastSenderEmail: user!.email,
-        updatedAt: serverTimestamp(),
-      });
+      // [GHOST-FIX-1] Only proceed if message was created successfully
+      if (!messageRef.id) {
+        throw new Error('Failed to create message - chat not initialized');
+      }
 
-      setShowDisclaimer(false);
+      // [GHOST-FIX-1] Now set/update chat metadata (for new chats, this creates the doc if it doesn't exist)
+      // Using setDoc with merge:true ensures document is created AND existing fields are preserved
+      await setDoc(
+        doc(db, 'chats', chatId),
+        {
+          participants, // [GHOST-FIX-1] Essential field - required for chat queries
+          lastMessage: `Requested: ${selectedItem.name}`,
+          lastSenderEmail: user!.email,
+          updatedAt: serverTimestamp(),
+          ...(isNewChat && { readBy: [] }), // [GHOST-FIX-1] Initialize for new chats only
+        },
+        { merge: true } // [GHOST-FIX-1] Merge with existing fields instead of overwriting
+      );
+
       Alert.alert('Success', 'Rental request sent to owner!');
       setSelectedItem(null);
 
@@ -169,8 +196,12 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
     }
   };
 
+
+  // MAIN UI RENDER
   return (
     <View>
+
+
       <Modal
         visible={selectedItem !== null}
         animationType="slide"
@@ -178,27 +209,38 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         onRequestClose={() => setSelectedItem(null)}
       >
         <SafeAreaView style={styles.modalContainer}>
-          {/* HEADER */}
+
+
+          {/* UI HEADER SECTION */}
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setSelectedItem(null)} style={{ padding: scale(5) }}>
               <Ionicons name="arrow-back" size={scale(24)} color="#222D31" />
             </TouchableOpacity>
+
             <Text style={[styles.modalHeaderTitle, { flex: 1, marginLeft: scale(15) }]}>
               Item Details
             </Text>
+
             <View style={{ width: scale(24) }} />
           </View>
 
+
+          {/* UI SCROLLABLE CONTENT SECTION */}
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+            
+
             <Image
               source={{ uri: selectedItem?.imageUrl || selectedItem?.image }}
               style={styles.modalImage}
             />
 
             <View style={styles.modalInfoSection}>
-              {/* CATEGORY + STATUS */}
+
+
+              {/* CATEGORY AND STATUS BADGE DISPLAY */}
               <View style={styles.modalRow}>
                 <Text style={styles.modalCategory}>{selectedItem?.category}</Text>
+
                 <View
                   style={[
                     styles.statusBadge,
@@ -226,27 +268,50 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                 </View>
               </View>
 
-              {/* TITLE */}
-              <Text style={styles.modalTitle}>{selectedItem?.name || selectedItem?.title}</Text>
 
-              {/* PRICE */}
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: scale(15) }}>
-                <Text style={[styles.modalPrice, { marginBottom: 0 }]}>{selectedItem?.price}</Text>
-                {selectedItem?.rentalPeriod && (
-                  <Text style={[styles.modalPrice, { marginBottom: 0, fontSize: scale(16), color: '#AF0B01' }]}>
-                    {' '}/ {selectedItem.rentalPeriod}
+              {/* TITLE AND PRICING DISPLAY */}
+              <View style={{ 
+                flexDirection: 'row', 
+                justifyContent: 'space-between', 
+                alignItems: 'flex-start',
+                marginBottom: scale(10)
+              }}>
+                
+                <Text 
+                  style={[styles.modalTitle, { flex: 1, marginRight: scale(10) }]}
+                  numberOfLines={2}
+                >
+                  {selectedItem?.name || selectedItem?.title}
+                </Text>
+
+                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                  <Text style={[styles.modalPrice, { marginBottom: 0 }]}>
+                    {selectedItem?.price}
                   </Text>
-                )}
+
+                  {selectedItem?.rentalPeriod && (
+                    <Text style={[styles.modalPrice, { 
+                      marginBottom: 0, 
+                      fontSize: scale(16), 
+                      color: '#1976D2' 
+                    }]}>
+                      {' '}/ {selectedItem.rentalPeriod}
+                    </Text>
+                  )}
+                </View>
+
               </View>
 
               <View style={[styles.divider, { marginBottom: scale(20) }]} />
 
-              {/* INFO CARD */}
+
+              {/* DATA CARD FOR OWNER INFO, DESCRIPTION, AND LOCATION */}
               <View style={{ backgroundColor: '#FFFFFF', borderRadius: scale(12), overflow: 'hidden' }}>
-                
-                {/* OWNER ROW */}
+
+
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
                   <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Owner</Text>
+
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <View
                       style={{
@@ -268,6 +333,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                         </Text>
                       )}
                     </View>
+
                     <View style={{ flex: 1 }}>
                       <Text 
                         style={{ fontSize: scale(15), fontWeight: '700', color: '#222D31' }}
@@ -280,19 +346,22 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                   </View>
                 </View>
 
-                {/* DESCRIPTION ROW */}
+
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
                   <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Description</Text>
+
                   <Text style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginTop: scale(4), lineHeight: scale(20) }}>
                     {selectedItem?.description || 'No description provided.'}
                   </Text>
                 </View>
 
-                {/* LOCATION ROW */}
+
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14), borderBottomWidth: 1, borderBottomColor: '#F0F0F0' }}>
                   <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Location</Text>
+
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <Ionicons name="location-outline" size={scale(16)} color="#AF0B01" />
+
                     <View style={{ flex: 1 }}>
                       <Text 
                         style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginLeft: scale(5) }}
@@ -305,21 +374,64 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                   </View>
                 </View>
 
-                {/* POSTED ON ROW */}
+
                 <View style={{ paddingHorizontal: scale(15), paddingVertical: scale(14) }}>
                   <Text style={{ fontSize: scale(13), fontWeight: '700', color: '#9CA3AF' }}>Posted On</Text>
+
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: scale(4) }}>
                     <Ionicons name="time-outline" size={scale(16)} color="#AF0B01" />
+
                     <Text style={{ fontSize: scale(15), fontWeight: '600', color: '#222D31', marginLeft: scale(5) }}>
                       {formatPostedDate(selectedItem?.createdAt || selectedItem?.timestamp)}
                     </Text>
                   </View>
                 </View>
+
               </View>
+
+
+              {/* LEGAL AND PLATFORM DISCLAIMER */}
+              <View style={{
+                marginTop: scale(15),
+                padding: scale(15),
+                borderRadius: scale(12),
+                backgroundColor: '#E3F2FD',
+                borderWidth: 1,
+                borderColor: '#1976D2'
+              }}>
+
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginBottom: scale(6)
+                }}>
+                  <Ionicons name="information-circle-outline" size={scale(18)} color="#1976D2" />
+
+                  <Text style={{
+                    fontSize: scale(13),
+                    fontWeight: '800',
+                    color: '#1976D2',
+                    marginLeft: scale(6)
+                  }}>
+                    Disclaimer
+                  </Text>
+                </View>
+
+                <Text style={{
+                  fontSize: scale(13),
+                  lineHeight: scale(18),
+                  color: '#1976D2'
+                }}>
+                  Please note that our platform does not handle payments directly.
+                </Text>
+
+              </View>
+
             </View>
           </ScrollView>
 
-          {/* FOOTER */}
+
+          {/* UI FOOTER SECTION WITH ACTION BUTTON */}
           <View style={[styles.modalFooter, { paddingBottom: Platform.OS === 'ios' ? scale(30) : scale(15) }]}>
             <TouchableOpacity
               style={[styles.messageBtn, { borderRadius: scale(50), height: scale(46), marginHorizontal: scale(5) }]}
@@ -331,6 +443,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                 color="#FFFFFF"
                 style={{ marginRight: 8 }}
               />
+
               <Text style={styles.messageBtnText}>
                 {isOwner
                   ? 'Edit Item'
@@ -340,47 +453,12 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
               </Text>
             </TouchableOpacity>
           </View>
+
+
         </SafeAreaView>
       </Modal>
 
-      {/* DISCLAIMER MODAL */}
-      <Modal
-        visible={showDisclaimer}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowDisclaimer(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: scale(20) }}>
-          <View style={{ backgroundColor: '#FFF', borderRadius: scale(12), padding: scale(20), width: '100%', alignItems: 'center' }}>
 
-            <Text style={{ fontSize: scale(18), fontWeight: '800', color: '#AF0B01', marginBottom: scale(12) }}>Disclaimer</Text>
-            <Text style={{ fontSize: scale(14), lineHeight: scale(20), color: '#4B5563', textAlign: 'center', marginBottom: scale(20) }}>
-              Please note that our platform does not handle payments directly. All transactions are made between users outside the app.{"\n\n"}
-              We are not responsible for any payment issues or losses, but we will review and take action on reported scams or misconduct.{"\n"}
-            </Text>
-            
-            <View style={{ flexDirection: 'row', width: '100%', gap: scale(10) }}>
-              <TouchableOpacity 
-                style={{ flex: 1, paddingVertical: scale(12), borderRadius: scale(8), borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center' }} 
-                onPress={() => setShowDisclaimer(false)}
-                disabled={loading}
-              >
-                <Text style={{ color: '#4B5563', fontWeight: '700' }}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={{ flex: 1, backgroundColor: '#222D31', paddingVertical: scale(12), borderRadius: scale(8), alignItems: 'center' }} 
-                onPress={processRentalRequest}
-                disabled={loading}
-              >
-                <Text style={{ color: '#FFF', fontWeight: '700' }}>
-                  {loading ? 'Sending...' : 'I Agree'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };

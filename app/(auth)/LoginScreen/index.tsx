@@ -19,7 +19,11 @@ import { AuthToggle } from './components/AuthToggle';
 import { InputField } from './components/InputField';
 import { styles } from './styles';
 
+
 export default function LoginScreen() {
+
+
+  // STATE MANAGEMENT
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,6 +34,21 @@ export default function LoginScreen() {
 
   const router = useRouter();
 
+
+
+  // SIDE EFFECTS
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+        showSub.remove();
+        hideSub.remove();
+    };
+  }, [Keyboard]);
+
+
+
+  // AUTHENTICATION LOGIC
   const handleAuth = async () => {
     if (!email.endsWith('@hcdc.edu.ph')) {
         alert('Only HCDC email is allowed');
@@ -81,35 +100,36 @@ export default function LoginScreen() {
     }
   };
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => {
-        showSub.remove();
-        hideSub.remove();
-    };
-  }, [Keyboard]);
 
+
+  // MAIN RENDER
   return (
     <SafeAreaView style={styles.container}>
+
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={{ flex: 1 }}
       >
+        
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={[styles.inner, keyboardVisible && !isLogin ? { paddingTop: 40 } : { paddingTop: 140 }]}>
             
+
+            {/* HEADER SECTION */}
             <View style={styles.header}>
-              <Text style={styles.logo}>Cross<Text style={{color: '#AF0B01'}}>Rent</Text></Text>
+              <Text style={[styles.logo, { marginBottom: 10 }]}>Cross<Text style={{color: '#AF0B01'}}>Rent</Text></Text>
               <Text style={styles.heroHeader}>
                 {isLogin ? 'Welcome Back' : 'Create Account'}
               </Text>
-            <Text style={[styles.quote, { marginTop: 10 }]}>This platform is exclusively for Holy Cross of Davao College users.</Text>
-
+              <Text style={[styles.quote, { marginTop: 10 }]}>Exclusive for Holy Cross of Davao College users.</Text>
             </View>
 
+
+            {/* TOGGLE SECTION */}
             <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />
 
+
+            {/* FORM SECTION */}
             <View style={styles.form}>
               <InputField 
                 label="EMAIL ADDRESS"
@@ -142,6 +162,8 @@ export default function LoginScreen() {
                 />
               )}
 
+
+              {/* ACTIONS SECTION */}
               <TouchableOpacity style={styles.mainActionBtn} onPress={handleAuth}>
                 <Text style={styles.mainActionText}>
                   {isLogin ? 'Sign In' : 'Create Account'}
@@ -154,17 +176,21 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               )}
 
+
+              {/* FOOTER SECTION */}
               <View style={styles.footerLogoContainer}>
                 <Image 
                   source={require('../../../assets/hcdc_logo.png')} 
                   style={styles.footerLogo}
                 />
-                
               </View>
             </View>
+
           </View>
         </TouchableWithoutFeedback>
+
       </KeyboardAvoidingView>
+
     </SafeAreaView>
   );
 }

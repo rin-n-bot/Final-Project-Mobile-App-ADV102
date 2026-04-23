@@ -1,10 +1,21 @@
 import { StyleSheet, Platform, StatusBar } from 'react-native';
 
+
+
 const s = StyleSheet.create({
+
+  // LAYOUT WRAPPERS AND CONTAINERS
   mainWrapper: { 
     flex: 1, 
     backgroundColor: '#f5f5f5' 
   },
+  formContainer: { 
+    padding: 20 
+  },
+
+
+
+  // CUSTOM HEADER NAVIGATION
   redHeader: { 
     backgroundColor: '#AF0B01', 
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
@@ -21,17 +32,18 @@ const s = StyleSheet.create({
     fontWeight: '800', 
     color: '#FFF' 
   },
+  iconButton: { 
+    padding: 5 
+  },
   postBtnText: { 
     color: '#FFF', 
     fontWeight: '800', 
     fontSize: 15 
   },
-  iconButton: { 
-    padding: 5 
-  },
-  formContainer: { 
-    padding: 20 
-  },
+
+
+
+  // INPUT FIELD COMPONENTS
   label: { 
     fontSize: 14, 
     fontWeight: '700', 
@@ -48,18 +60,21 @@ const s = StyleSheet.create({
     fontSize: 15,
     color: '#222D31',
 
-      // 👇 LIGHT SHADOW
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.08,
-  shadowRadius: 2,
-
-  elevation: 1, // Android
+    // LIGHT SHADOW
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1, // Android
   },
   textArea: { 
     height: 100, 
     textAlignVertical: 'top' 
   },
+
+
+
+  // SELECTION CHIPS (CATEGORIES/DURATION/STATUS)
   chipGrid: { 
     flexDirection: 'row', 
     flexWrap: 'wrap', 
@@ -76,7 +91,7 @@ const s = StyleSheet.create({
   chipInactive: { 
     backgroundColor: '#FFF', 
     borderColor: '#cfd4da',
-      borderWidth: 1,
+    borderWidth: 1,
   },
   chipActive: { 
     backgroundColor: '#222D31', 
@@ -94,7 +109,10 @@ const s = StyleSheet.create({
   chipTextActive: { 
     color: '#FFF' 
   },
-  // ... existing styles
+
+
+
+  // IMAGE UPLOAD SECTION
   imageButton: {
     backgroundColor: '#ffffff',
     borderWidth: 1.5,
@@ -121,7 +139,10 @@ const s = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover'
   },
-  // ... continue to centeredFooter
+
+
+
+  // SCREEN FOOTER AND USER INFO
   centeredFooter: { 
     width: '100%', 
     alignItems: 'center', 
@@ -136,6 +157,9 @@ const s = StyleSheet.create({
     color: '#999', 
     fontSize: 12 
   }
+
 });
+
+
 
 export default s;
