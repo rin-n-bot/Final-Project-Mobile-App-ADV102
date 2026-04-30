@@ -3,10 +3,8 @@ import { Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 
-
 // SCALE SYSTEM
 export const scale = (size: number) => (width / 375) * size;
-
 
 
 // SPACING
@@ -20,7 +18,6 @@ export const SPACING = {
 };
 
 
-
 // COLORS
 export const COLORS = {
   primary: '#222D31',
@@ -32,7 +29,6 @@ export const COLORS = {
   background: '#f5f5f5',
   lightBackground: '#F0F0F0',
 };
-
 
 
 // TYPOGRAPHY
@@ -57,7 +53,6 @@ export const TYPOGRAPHY = {
     fontWeight: '600' as const,
   },
 };
-
 
 
 // LAYOUT TOKENS

@@ -1,5 +1,4 @@
-
-// IMPORTS
+// Imports for core functionality, UI components, and Firebase hooks
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -28,85 +27,111 @@ import { ListingCard } from '../home/components/ListingCard';
 import { scale, styles } from './styles';
 
 
+// Global constants for configuration and styling
+const ALL_CATEGORY_ID = 'All';
+const QUOTE_INTERVAL = 10000;
+const ANIMATION_SPEED = 500;
+const REFRESH_DURATION = 1500;
+const LOAD_SIMULATION = 800;
+const ACCENT_RED = '#AF0B01';
+const LIGHT_GRAY = '#F5F5F5';
+const CHARCOAL = '#222D31';
 
-// MAIN COMPONENT
 export default function HomeScreen() {
 
 
-  // CONTEXT & NAVIGATION
+  // Navigation and Drawer context
   const { toggleDrawer, isDrawerOpen } = useDrawer();
   const router = useRouter();
-  const user = auth.currentUser;
+  const currentUser = auth.currentUser;
 
 
-
-  // STATE VARIABLES
-  const [activeCategory, setActiveCategory] = useState('All');
+  // UI State management
+  const [activeCategory, setActiveCategory] = useState(ALL_CATEGORY_ID);
   const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [listings, setListings] = useState<any[]>([]);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showFullMeaning, setShowFullMeaning] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [userEmail, setUserEmail] = useState<string>('');
 
 
-
-  // ANIMATIONS
+  // Animation values for transitions
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const arrowRotate = useRef(new Animated.Value(0)).current;
 
 
-
-  // USER PROFILE FETCH
-  useEffect(() => {
-    if (!user) return;
-    setUserEmail(user.email || '');
-
-    const unsub = onSnapshot(doc(db, 'profiles', user.uid), (snap) => {
-      if (snap.exists()) {
-        setAvatarUrl(snap.data().profilePicUrl || '');
-      }
-    });
-    return unsub;
-  }, [user]);
-
-
-
-  // HELPER FUNCTIONS
+  // Category string formatter
   const formatCategoryName = (id: string) => {
-    if (id === 'All') return 'All';
+    if (id === ALL_CATEGORY_ID) return ALL_CATEGORY_ID;
     return id
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
+  
+  // Main listing filter logic
+  const getFilteredListings = () => {
+    return listings.filter((item) => {
+      const itemCatId = (item.categoryId || '').toLowerCase().trim();
+      const itemCatLabel = (item.category || '').toLowerCase().trim();
+      const currentActive = activeCategory.toLowerCase().trim();
+      const queryLower = searchQuery.toLowerCase().trim();
+
+      const matchesCategory =
+        activeCategory === ALL_CATEGORY_ID ||
+        itemCatId === currentActive ||
+        itemCatId === currentActive + 's' ||
+        itemCatId + 's' === currentActive ||
+        itemCatLabel === currentActive;
+
+      const matchesSearch =
+        (item.name || '').toLowerCase().includes(queryLower) ||
+        (item.category || '').toLowerCase().includes(queryLower);
+
+      return matchesCategory && matchesSearch;
+    });
+  };
 
 
-  // FETCH CATEGORIES
+  // Sync user profile data from Firestore
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'categories'), (snapshot) => {
-      const fetchedCats = snapshot.docs.map((doc) => ({
+    if (!currentUser) return;
+    setUserEmail(currentUser.email || '');
+
+    const unsubProfile = onSnapshot(doc(db, 'profiles', currentUser.uid), (snap) => {
+      if (snap.exists()) {
+        setAvatarUrl(snap.data().profilePicUrl || '');
+      }
+    });
+    return unsubProfile;
+  }, [currentUser]);
+
+
+  // Sync categories list from Firestore
+  useEffect(() => {
+    const unsubCats = onSnapshot(collection(db, 'categories'), (snapshot) => {
+      const fetched = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
         displayName: formatCategoryName(doc.id),
       }));
-      setDbCategories([{ id: 'All', displayName: 'All', icon: 'grid-outline' }, ...fetchedCats]);
+      setDbCategories([{ id: ALL_CATEGORY_ID, displayName: ALL_CATEGORY_ID, icon: 'grid-outline' }, ...fetched]);
     });
-    return () => unsub();
-  }, []);
+    return unsubCats;
+  });
 
 
-
-  // FETCH LISTINGS
+  // Listen for new item listings
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => {
       const q = query(collection(db, 'items'), orderBy('createdAt', 'desc'));
-      const unsubscribe = onSnapshot(
+      const unsubItems = onSnapshot(
         q,
         (snapshot) => {
           const items = snapshot.docs.map((doc) => {
@@ -130,39 +155,41 @@ export default function HomeScreen() {
           setIsLoading(false);
         }
       );
-      return unsubscribe;
+      return unsubItems;
     });
     return () => task.cancel();
   }, []);
 
 
-
-  // GREETING QUOTES ROTATION
+  // Control the fading greeting text
   useEffect(() => {
-    const quoteInterval = setInterval(() => {
-      Animated.timing(fadeAnim, { toValue: 0, duration: 500, useNativeDriver: true }).start(() => {
+    const timer = setInterval(() => {
+      Animated.timing(fadeAnim, { toValue: 0, duration: ANIMATION_SPEED, useNativeDriver: true }).start(() => {
         setQuoteIndex((prev) => (prev + 1) % GREETING_QUOTES.length);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+        Animated.timing(fadeAnim, { toValue: 1, duration: ANIMATION_SPEED, useNativeDriver: true }).start();
       });
-    }, 10000);
-    return () => clearInterval(quoteInterval);
-  }, []);
+    }, QUOTE_INTERVAL);
+    return () => clearInterval(timer);
+  }, [fadeAnim]);
 
 
-
-  // EVENT HANDLERS
-  const handleCategoryPress = (categoryId: string) => {
+  // Category switch handler
+  const handleCategoryChange = (categoryId: string) => {
     if (categoryId === activeCategory) return;
     setIsLoading(true);
     setActiveCategory(categoryId);
-    setTimeout(() => setIsLoading(false), 800);
+    setTimeout(() => setIsLoading(false), LOAD_SIMULATION);
   };
 
+
+  // List refresh handler
   const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1500);
+    setIsRefreshing(true);
+    setTimeout(() => setIsRefreshing(false), REFRESH_DURATION);
   };
 
+
+  // Header expansion toggle
   const toggleHCDC = () => {
     const toValue = showFullMeaning ? 0 : 1;
     Animated.spring(arrowRotate, { toValue, useNativeDriver: true, friction: 8 }).start();
@@ -170,215 +197,188 @@ export default function HomeScreen() {
   };
 
 
+  // Top navigation row
+  const renderTopNav = () => (
+    <View style={[styles.topNav, { backgroundColor: LIGHT_GRAY }]}>
+      <TouchableOpacity onPress={() => toggleDrawer(true)}>
+        <Ionicons name="menu-outline" size={scale(28)} color={CHARCOAL} />
+      </TouchableOpacity>
 
-  // FILTER LOGIC
-  const filteredListings = listings.filter((item) => {
-    const itemCatId = (item.categoryId || '').toLowerCase().trim();
-    const itemCatString = (item.category || '').toLowerCase().trim();
-    const activeCat = activeCategory.toLowerCase().trim();
+      <Text style={styles.logoMini}>
+        Cross<Text style={{ color: ACCENT_RED }}>Rent</Text>
+      </Text>
 
-    const matchesCategory =
-      activeCategory === 'All' ||
-      itemCatId === activeCat ||
-      itemCatId === activeCat + 's' ||
-      itemCatId + 's' === activeCat ||
-      itemCatString === activeCat;
-
-    const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      (item.name || '').toLowerCase().includes(searchLower) ||
-      (item.category || '').toLowerCase().includes(searchLower);
-
-    return matchesCategory && matchesSearch;
-  });
-
-
-
-  // ANIMATION INTERPOLATION
-  const arrowRotation = arrowRotate.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
-  });
-
-
-
-  // RENDER
-  return (
-    <View style={{ flex: 1, backgroundColor: '#F5F5F5' }}>
-      <SafeAreaView style={[styles.container, { backgroundColor: '#F5F5F5' }]}>
+      <TouchableOpacity
+        onPress={() => router.push('/profile' as any)}
+        style={[styles.profileCircle, { overflow: 'hidden' }]}
+        activeOpacity={0.8}
+      >
+        {avatarUrl ? (
+          <Image
+            source={{ uri: avatarUrl }}
+            style={{ width: '100%', height: '100%', borderRadius: scale(16) }}
+          />
+        ) : (
+          <View
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: scale(16),
+              backgroundColor: CHARCOAL,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: scale(12) }}>
+              {userEmail?.charAt(0).toUpperCase() || 'U'}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
 
 
-        {/* STATUS BAR */}
-        <StatusBar
-          barStyle={isDrawerOpen || selectedItem ? 'light-content' : 'dark-content'}
+  // Animated greeting section
+  const renderGreeting = () => {
+    const rotation = arrowRotate.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '180deg'],
+    });
+
+    return (
+      <View style={styles.greetingContainer}>
+        <TouchableOpacity onPress={toggleHCDC} activeOpacity={0.7} style={styles.hcdcToggle}>
+          <Text style={[styles.hcdcText, showFullMeaning && { color: ACCENT_RED }]}>
+            {showFullMeaning ? 'Holy Cross of Davao College' : 'HCDC'}
+          </Text>
+          <Animated.View style={{ transform: [{ rotate: rotation }] }}>
+            <Ionicons
+              name="chevron-down"
+              size={scale(16)}
+              color={showFullMeaning ? ACCENT_RED : '#0038A8'}
+            />
+          </Animated.View>
+        </TouchableOpacity>
+
+        <Animated.Text style={[styles.greetingText, { opacity: fadeAnim, letterSpacing: -1 }]}>
+          {GREETING_QUOTES[quoteIndex]}
+        </Animated.Text>
+      </View>
+    );
+  };
+
+
+  // Search input bar
+  const renderSearch = () => (
+    <View style={styles.searchSection}>
+      <View style={[styles.searchBar, { backgroundColor: '#d9dfe665' }]}>
+        <Ionicons name="search-outline" size={scale(20)} color={CHARCOAL} style={{ marginRight: 10 }} />
+        <TextInput
+          placeholder="Search items..."
+          style={styles.searchInput}
+          placeholderTextColor="#999"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
+      </View>
+    </View>
+  );
 
 
-        {/* MODAL */}
+  // Horizontal category list
+  const renderCategories = () => (
+    <>
+      <Text style={styles.sectionLabel}>Categories</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: scale(20), paddingBottom: scale(20) }}
+      >
+        {dbCategories.map((cat) => (
+          <CategoryCard
+            key={cat.id}
+            cat={{ ...cat, name: cat.displayName }}
+            isActive={activeCategory === cat.id}
+            onPress={() => handleCategoryChange(cat.id)}
+          />
+        ))}
+      </ScrollView>
+    </>
+  );
+
+
+  // Main listings grid
+  const renderListings = () => {
+    const filtered = getFilteredListings();
+
+    if (isLoading) {
+      return (
+        <View style={{ paddingVertical: 40, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={ACCENT_RED} />
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.gridContainer}>
+        {filtered.length > 0 ? (
+          filtered.map((item) => (
+            <ListingCard
+              key={item.id}
+              item={item}
+              onPress={() => setSelectedItem(item)}
+            />
+          ))
+        ) : (
+          <View style={styles.noResultsContainer}>
+            <Text style={styles.noResultsText}>No listings found.</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  
+  // Master UI layout
+  return (
+    <View style={{ flex: 1, backgroundColor: LIGHT_GRAY }}>
+      <SafeAreaView style={[styles.container, { backgroundColor: LIGHT_GRAY }]}>
+        <StatusBar barStyle={isDrawerOpen || selectedItem ? 'light-content' : 'dark-content'} />
+
         <ModalItemDetails selectedItem={selectedItem} setSelectedItem={setSelectedItem} />
 
+        {renderTopNav()}
 
-        {/* TOP NAVIGATION */}
-        <View style={[styles.topNav, { backgroundColor: '#F5F5F5' }]}>
-          <TouchableOpacity onPress={() => toggleDrawer(true)}>
-            <Ionicons name="menu-outline" size={scale(28)} color="#222D31" />
-          </TouchableOpacity>
-
-          <Text style={styles.logoMini}>
-            Cross<Text style={{ color: '#AF0B01' }}>Rent</Text>
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => router.push('/profile' as any)}
-            style={[styles.profileCircle, { overflow: 'hidden' }]}
-            activeOpacity={0.8}
-          >
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                style={{ width: '100%', height: '100%', borderRadius: scale(16) }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: scale(16),
-                  backgroundColor: '#222D31',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: scale(12) }}>
-                  {userEmail?.charAt(0).toUpperCase() || 'U'}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-
-        {/* MAIN CONTENT */}
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor="#AF0B01"
-              colors={['#AF0B01']}
+              tintColor={ACCENT_RED}
+              colors={[ACCENT_RED]}
             />
           }
         >
+          {renderGreeting()}
+          {renderSearch()}
+          {renderCategories()}
 
-
-          {/* GREETING */}
-          <View style={styles.greetingContainer}>
-            <TouchableOpacity
-              onPress={toggleHCDC}
-              activeOpacity={0.7}
-              style={styles.hcdcToggle}
-            >
-              <Text style={[styles.hcdcText, showFullMeaning && { color: '#AF0B01' }]}>
-                {showFullMeaning ? 'Holy Cross of Davao College' : 'HCDC'}
-              </Text>
-
-              <Animated.View style={{ transform: [{ rotate: arrowRotation }] }}>
-                <Ionicons
-                  name="chevron-down"
-                  size={scale(16)}
-                  color={showFullMeaning ? '#AF0B01' : '#0038A8'}
-                />
-              </Animated.View>
-            </TouchableOpacity>
-
-            <Animated.Text style={[styles.greetingText, { opacity: fadeAnim, letterSpacing: -1 }]}>
-              {GREETING_QUOTES[quoteIndex]}
-            </Animated.Text>
-          </View>
-
-
-          {/* SEARCH */}
-          <View style={styles.searchSection}>
-            <View style={[styles.searchBar, { backgroundColor: '#d9dfe665' }]}>
-              <Ionicons
-                name="search-outline"
-                size={scale(20)}
-                color="#222D31"
-                style={{ marginRight: 10 }}
-              />
-              <TextInput
-                placeholder="Search items..."
-                style={styles.searchInput}
-                placeholderTextColor="#999"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-          </View>
-
-
-          {/* CATEGORIES */}
-          <Text style={styles.sectionLabel}>Categories</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ 
-              paddingHorizontal: scale(20),
-              paddingBottom: scale(20)
-            }}
-          >
-            {dbCategories.map((cat) => (
-              <CategoryCard
-                key={cat.id}
-                cat={{ ...cat, name: cat.displayName }}
-                isActive={activeCategory === cat.id}
-                onPress={() => handleCategoryPress(cat.id)}
-              />
-            ))}
-          </ScrollView>
-
-
-          {/* LIST TITLE */}
           <Text style={styles.sectionLabel}>
             {searchQuery.length > 0
               ? `Results for "${searchQuery}"`
-              : activeCategory === 'All'
+              : activeCategory === ALL_CATEGORY_ID
               ? 'All Items'
               : formatCategoryName(activeCategory)}
           </Text>
 
+          {renderListings()}
 
-          {/* LISTINGS */}
-          {isLoading ? (
-            <View style={{ paddingVertical: 40, justifyContent: 'center', alignItems: 'center' }}>
-              <ActivityIndicator size="large" color="#AF0B01" />
-            </View>
-          ) : (
-            <View style={styles.gridContainer}>
-              {filteredListings.length > 0 ? (
-                filteredListings.map((item) => (
-                  <ListingCard
-                    key={item.id}
-                    item={item}
-                    onPress={() => setSelectedItem(item)}
-                  />
-                ))
-              ) : (
-                <View style={styles.noResultsContainer}>
-                  <Text style={styles.noResultsText}>No listings found.</Text>
-                </View>
-              )}
-            </View>
-          )}
-
-
-          {/* END OF LIST */}
-          {!isLoading && filteredListings.length > 0 && (
+          {!isLoading && getFilteredListings().length > 0 && (
             <Text style={styles.endOfListText}>No more listings.</Text>
           )}
-
         </ScrollView>
       </SafeAreaView>
     </View>

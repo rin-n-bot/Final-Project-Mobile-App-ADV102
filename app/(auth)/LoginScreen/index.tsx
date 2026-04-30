@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, UserCredential } from 'firebase/auth';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Image,
   Keyboard,
   KeyboardAvoidingView,
@@ -14,7 +15,6 @@ import {
   View
 } from 'react-native';
 import { auth, db } from '../../../firebase';
-
 import { AuthToggle } from './components/AuthToggle';
 import { InputField } from './components/InputField';
 import { styles } from './styles';
@@ -22,8 +22,7 @@ import { styles } from './styles';
 
 export default function LoginScreen() {
 
-
-  // STATE MANAGEMENT
+  // State
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,101 +34,130 @@ export default function LoginScreen() {
   const router = useRouter();
 
 
-
-  // SIDE EFFECTS
+  // Listens for keyboard visibility to adjust UI padding dynamically.
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => {
-        showSub.remove();
-        hideSub.remove();
+      showSub.remove();
+      hideSub.remove();
     };
-  }, [Keyboard]);
+  }, []);
 
 
-
-  // AUTHENTICATION LOGIC
-  const handleAuth = async () => {
+  //Validates if the email belongs to the HCDC domain and password meets criteria.
+  const validateInputs = () => {
     if (!email.endsWith('@hcdc.edu.ph')) {
-        alert('Only HCDC email is allowed');
-        return;
+      Alert.alert('Validation Error', 'Only HCDC email is allowed');
+      return false;
     }
     if (password.length < 6) {
-        alert('Password must be at least 6 characters');
-        return;
+      Alert.alert('Validation Error', 'Password must be at least 6 characters');
+      return false;
     }
     if (!isLogin && password !== confirmPassword) {
-        alert('Passwords do not match');
-        return;
+      Alert.alert('Validation Error', 'Passwords do not match');
+      return false;
+    }
+    return true;
+  };
+
+
+  // Firestore Logic
+  const updateUserProfile = async (uid: string, emailStr: string | null, isNewUser: boolean) => {
+    const userRef = doc(db, 'users', uid);
+    const data = isNewUser 
+      ? { uid, email: emailStr, createdAt: serverTimestamp() } 
+      : { uid, email: emailStr, lastLogin: serverTimestamp() };
+    
+    await setDoc(userRef, data, { merge: true });
+  };
+
+
+  // Authentication  
+  const performLogin = async () => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    if (!userCredential.user.emailVerified) {
+      Alert.alert('Verification Required', 'Please verify your HCDC email first!');
+      return;
     }
 
+    await updateUserProfile(userCredential.user.uid, userCredential.user.email, false);
+    router.replace('/(tabs)/home');
+  };
+
+
+  // Handles the registration flow and triggers verification email.
+  const performSignup = async () => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    await updateUserProfile(userCredential.user.uid, userCredential.user.email, true);
+    await sendEmailVerification(userCredential.user);
+    Alert.alert('Success', 'Verification email sent! Check your HCDC email.');
+  };
+  
+
+  // Management for the authentication process.
+  const handleAuth = async () => {
+    if (!validateInputs()) return;
+
     try {
-        if (isLogin) {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          
-          if (!userCredential.user.emailVerified) {
-              alert('Please verify your HCDC email first!');
-              return;
-          }
-
-          await setDoc(doc(db, 'users', userCredential.user.uid), {
-            uid: userCredential.user.uid,
-            email: userCredential.user.email,
-            lastLogin: serverTimestamp(),
-          }, { merge: true });
-
-          router.replace('/(tabs)/home');
-        } else {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          
-          await setDoc(doc(db, 'users', userCredential.user.uid), {
-            uid: userCredential.user.uid,
-            email: userCredential.user.email,
-            createdAt: serverTimestamp(),
-          }, { merge: true });
-
-          await sendEmailVerification(userCredential.user);
-          alert('Verification email sent! Check your HCDC email.');
-        }
-
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
+      if (isLogin) {
+        await performLogin();
+      } else {
+        await performSignup();
+      }
+      resetForm();
     } catch (error: any) {
-        alert(error.message);
+      Alert.alert('Authentication Error', error.message);
     }
   };
 
 
+  // Clears all input fields.
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
 
-  // MAIN RENDER
+
+  //Renders the logo and header text based on auth state.
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={[styles.logo, { marginBottom: 10 }]}>
+        Cross<Text style={{ color: '#AF0B01' }}>Rent</Text>
+      </Text>
+      <Text style={styles.heroHeader}>
+        {isLogin ? 'Welcome Back' : 'Create Account'}
+      </Text>
+      <Text style={[styles.quote, { marginTop: 10 }]}>
+        Exclusive for Holy Cross of Davao College users.
+      </Text>
+    </View>
+  );
+
+
+  // Returns dynamic padding based on keyboard and auth state.
+  const getContainerPadding = () => {
+    return keyboardVisible && !isLogin ? { paddingTop: 40 } : { paddingTop: 140 };
+  };
+
+  
+  // Main Render
   return (
     <SafeAreaView style={styles.container}>
-
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
         style={{ flex: 1 }}
       >
-        
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={[styles.inner, keyboardVisible && !isLogin ? { paddingTop: 40 } : { paddingTop: 140 }]}>
+          <View style={[styles.inner, getContainerPadding()]}>
             
+            {renderHeader()}
 
-            {/* HEADER SECTION */}
-            <View style={styles.header}>
-              <Text style={[styles.logo, { marginBottom: 10 }]}>Cross<Text style={{color: '#AF0B01'}}>Rent</Text></Text>
-              <Text style={styles.heroHeader}>
-                {isLogin ? 'Welcome Back' : 'Create Account'}
-              </Text>
-              <Text style={[styles.quote, { marginTop: 10 }]}>Exclusive for Holy Cross of Davao College users.</Text>
-            </View>
-
-
-            {/* TOGGLE SECTION */}
             <AuthToggle isLogin={isLogin} setIsLogin={setIsLogin} />
 
-
-            {/* FORM SECTION */}
             <View style={styles.form}>
               <InputField 
                 label="EMAIL ADDRESS"
@@ -162,8 +190,6 @@ export default function LoginScreen() {
                 />
               )}
 
-
-              {/* ACTIONS SECTION */}
               <TouchableOpacity style={styles.mainActionBtn} onPress={handleAuth}>
                 <Text style={styles.mainActionText}>
                   {isLogin ? 'Sign In' : 'Create Account'}
@@ -176,8 +202,6 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               )}
 
-
-              {/* FOOTER SECTION */}
               <View style={styles.footerLogoContainer}>
                 <Image 
                   source={require('../../../assets/hcdc_logo.png')} 
@@ -188,9 +212,7 @@ export default function LoginScreen() {
 
           </View>
         </TouchableWithoutFeedback>
-
       </KeyboardAvoidingView>
-
     </SafeAreaView>
   );
 }

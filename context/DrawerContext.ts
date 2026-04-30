@@ -2,13 +2,11 @@ import React, { createContext, useContext, useRef, useState, ReactNode } from 'r
 import { Animated } from 'react-native';
 
 
-
-// CONSTANT: DRAWER DIMENSIONS
+// DRAWER DIMENSIONS
 const DRAWER_WIDTH = 300;
 
 
-
-// INTERFACE: DRAWER CONTEXT VALUE TYPES
+// DRAWER CONTEXT VALUE TYPES
 interface DrawerContextType {
   isDrawerOpen: boolean;
   slideAnim: Animated.Value;
@@ -16,20 +14,17 @@ interface DrawerContextType {
 }
 
 
-
 // CONTEXT INITIALIZATION
 const DrawerContext = createContext<DrawerContextType | undefined>(undefined);
 
 
-
-// COMPONENT: NAVIGATION DRAWER PROVIDER
+// NAVIGATION DRAWER PROVIDER
 export function DrawerProvider({ children }: { children: ReactNode }): React.ReactElement {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
 
 
-
-  // FUNCTION: ANIMATE DRAWER TOGGLE STATE
+  // ANIMATE DRAWER TOGGLE STATE
   const toggleDrawer = (open: boolean): void => {
     setIsDrawerOpen(open);
     Animated.timing(slideAnim, {
@@ -40,8 +35,7 @@ export function DrawerProvider({ children }: { children: ReactNode }): React.Rea
   };
 
 
-
-  // UI RENDER: CONTEXT PROVIDER WRAPPER
+  // CONTEXT PROVIDER WRAPPER
   return React.createElement(
     DrawerContext.Provider,
     {
@@ -56,8 +50,7 @@ export function DrawerProvider({ children }: { children: ReactNode }): React.Rea
 }
 
 
-
-// HOOK: CUSTOM DRAWER CONTEXT CONSUMER
+// CUSTOM DRAWER CONTEXT CONSUMER
 export function useDrawer(): DrawerContextType {
   const context = useContext(DrawerContext);
   if (!context) {

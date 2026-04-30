@@ -3,7 +3,6 @@ import React from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { styles } from '../styles';
 
-
 interface InputFieldProps {
   label: string;
   placeholder: string;
@@ -16,6 +15,7 @@ interface InputFieldProps {
 }
 
 
+// Standardized input field with optional password visibility toggle
 export const InputField = ({ 
   label, 
   placeholder, 
@@ -25,45 +25,55 @@ export const InputField = ({
   showPasswordToggle, 
   isPasswordVisible, 
   onToggleVisibility 
-}: 
-
-InputFieldProps) => (
+}: InputFieldProps) => {
 
 
-  <View style={styles.inputBox}>
-    <View style={styles.labelWrapper}>
-      <Text style={styles.inputLabel}>{label}</Text>
-    </View>
-
-
-    {showPasswordToggle ? (
-
-      <View style={styles.passwordInputContainer}>
-        <TextInput 
-          style={{ flex: 1, color: '#1D3557', fontSize: 16 }}
-          placeholder={placeholder}
-          placeholderTextColor="#DDE5E7"
-          secureTextEntry={secureTextEntry}
-          value={value}
-          onChangeText={onChangeText}
-        />
-        
-        <TouchableOpacity onPress={onToggleVisibility}>
-          <Ionicons name={isPasswordVisible ? "eye" : "eye-off"} size={20} color="#222D31" />
-        </TouchableOpacity>
-
-      </View>
-    ) : (
-
+  // Renders the password-specific input with an eye icon
+  const renderPasswordInput = () => (
+    <View style={styles.passwordInputContainer}>
       <TextInput 
-        placeholder={placeholder} 
-        style={styles.input}
+        style={{ flex: 1, color: '#1D3557', fontSize: 16 }}
+        placeholder={placeholder}
         placeholderTextColor="#DDE5E7"
-        autoCapitalize="none"
+        secureTextEntry={secureTextEntry}
         value={value}
         onChangeText={onChangeText}
+        autoCapitalize="none"
       />
-    )}
-    
-  </View>
-);
+      <TouchableOpacity onPress={onToggleVisibility}>
+        <Ionicons 
+          name={isPasswordVisible ? "eye" : "eye-off"} 
+          size={20} 
+          color="#222D31" 
+        />
+      </TouchableOpacity>
+    </View>
+  );
+
+
+  // Renders a standard text input field
+  const renderStandardInput = () => (
+    <TextInput 
+      placeholder={placeholder} 
+      style={styles.input}
+      placeholderTextColor="#DDE5E7"
+      autoCapitalize="none"
+      value={value}
+      onChangeText={onChangeText}
+      secureTextEntry={secureTextEntry}
+    />
+  );
+
+  return (
+    <View style={styles.inputBox}>
+      
+      {/* FIELD LABEL */}
+      <View style={styles.labelWrapper}>
+        <Text style={styles.inputLabel}>{label}</Text>
+      </View>
+
+      {/* INPUT CONTENT */}
+      {showPasswordToggle ? renderPasswordInput() : renderStandardInput()}
+    </View>
+  );
+};

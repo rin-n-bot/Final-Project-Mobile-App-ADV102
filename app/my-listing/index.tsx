@@ -29,19 +29,15 @@ import { COLORS } from '../../styles/global';
 import { listingStyles as styles } from './styles';
 
 
-
 // UI MEASUREMENTS AND SCALING CONSTANTS
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
 
-
 export default function MyListingScreen() {
-
 
 
    // NAVIGATION AND ROUTING HOOK
    const router = useRouter();
-
 
    
    // CORE DATA FOR USER LISTINGS
@@ -49,13 +45,11 @@ export default function MyListingScreen() {
    const [loading, setLoading] = useState(true);
 
 
-   
    // CATEGORY FILTERING AND ACCORDION UI
    const [categories, setCategories] = useState<{ id: string; displayName: string }[]>([]);
    const [activeCategory, setActiveCategory] = useState<string>('All');
    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
    const accordionAnim = useRef(new Animated.Value(0)).current;
-
 
    
    // FETCH AND FORMAT GLOBAL CATEGORIES FROM FIRESTORE
@@ -73,7 +67,6 @@ export default function MyListingScreen() {
    }, []);
 
 
-   
    // TOGGLE CATEGORY ACCORDION ANIMATION STATE
    const toggleCategory = () => {
        const toValue = isCategoryOpen ? 0 : 1;
@@ -84,8 +77,6 @@ export default function MyListingScreen() {
        }).start();
        setIsCategoryOpen(!isCategoryOpen);
    };
-
-
    
    // ANIMATION INTERPOLATE ARROW ROTATION
    const arrowRotation = accordionAnim.interpolate({
@@ -94,7 +85,6 @@ export default function MyListingScreen() {
    });
 
 
-   
    // ANIMATION INTERPOLATE ACCORDION HEIGHT
    const accordionMaxHeight = accordionAnim.interpolate({
        inputRange: [0, 1],
@@ -102,7 +92,6 @@ export default function MyListingScreen() {
    });
 
 
-   
    // REAL-TIME FIRESTORE LISTENER FOR USER-SPECIFIC ITEMS
    useEffect(() => {
        const user = auth.currentUser;
@@ -134,7 +123,6 @@ export default function MyListingScreen() {
    }, []);
 
 
-   
    // FILTER ITEMS ARRAY BASED ON SELECTED CATEGORY PILL
    const filteredItems = items.filter((item) => {
        if (activeCategory === 'All') return true;
@@ -144,7 +132,6 @@ export default function MyListingScreen() {
    });
 
 
-   
    // TRIGGER DELETE CONFIRMATION ALERT AND FIRESTORE ACTION
    const handleDelete = (itemId: string, itemName: string) => {
        Alert.alert(
@@ -168,14 +155,12 @@ export default function MyListingScreen() {
    };
 
 
-   
    // INDIVIDUAL ITEM CARD RENDERER FOR FLATLIST
    const renderItem = ({ item }: { item: any }) => {
        const isRented = item.status?.toLowerCase() === 'rented';
 
        return (
            <View style={styles.card}>
-
 
                {/* ITEM IMAGE SECTION */}
                <Image
@@ -185,14 +170,12 @@ export default function MyListingScreen() {
                    transition={300}
                />
 
-
                {/* ITEM DETAILS SECTION */}
                <View style={styles.itemInfo}>
                    <Text style={styles.itemTitle} numberOfLines={1}>{item.name}</Text>
                    <Text style={styles.itemPrice}>
                        {item.price} / {(item.rentalPeriod || 'day').toLowerCase()}
                    </Text>
-
 
                    {/* DYNAMIC STATUS BADGE */}
                    <View style={{ flexDirection: 'row', marginTop: 6 }}>
@@ -213,7 +196,6 @@ export default function MyListingScreen() {
                        </View>
                    </View>
                </View>
-
 
                {/* ACTION BUTTONS SECTION (EDIT/DELETE) */}
                <View style={styles.actions}>
@@ -236,7 +218,6 @@ export default function MyListingScreen() {
            </View>
        );
    };
-
 
    
    // RENDER MAIN SCREEN COMPOSITION
@@ -277,7 +258,6 @@ export default function MyListingScreen() {
 
                    <View style={{ width: scale(40) }} />
                </View>
-
 
                {/* CATEGORY SELECTOR ACCORDION SECTION */}
                <View style={{ backgroundColor: COLORS.background, paddingHorizontal: scale(20) }}>
@@ -348,7 +328,6 @@ export default function MyListingScreen() {
                </View>
            </View>
 
-
            {/* DATA LISTING CONTENT SECTION */}
            <View style={{ flex: 1, backgroundColor: COLORS.background }}>
                {loading ? (
@@ -358,7 +337,6 @@ export default function MyListingScreen() {
                    </View>
                ) : (
 
-
                    /* MAIN DATA FLATLIST */
                    <FlatList
                        data={filteredItems}
@@ -366,8 +344,7 @@ export default function MyListingScreen() {
                        renderItem={renderItem}
                        contentContainerStyle={styles.listContainer}
                        ListEmptyComponent={
-
-                        
+              
                            /* EMPTY LIST PLACEHOLDER */
                            <View style={{ alignItems: 'center', marginTop: scale(220) }}>
                                <Ionicons name="list-outline" size={scale(60)} color="#cfd4da" />

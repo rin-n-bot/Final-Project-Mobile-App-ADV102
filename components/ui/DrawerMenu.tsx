@@ -9,20 +9,18 @@ import { useDrawer } from '../../context/DrawerContext';
 import { useAuth } from '../../context/AuthContext';
 
 
-
-// COMPONENT: MAIN DRAWER NAVIGATION MENU
+// MAIN DRAWER NAVIGATION MENU
 export function DrawerMenu() {
 
 
-
-   // HOOKS: NAVIGATION AND CONTEXT INITIALIZATION
+   // NAVIGATION AND CONTEXT INITIALIZATION
    const router = useRouter();
    const { slideAnim, toggleDrawer, isDrawerOpen } = useDrawer();
    const { logout } = useAuth();
    const [showGuidelines, setShowGuidelines] = useState(false);
 
 
-   // FUNCTION: HANDLE USER LOGOUT PROCESS
+   // HANDLE USER LOGOUT PROCESS
    const handleLogout = async () => {
      Alert.alert('Confirm Logout', 'Are you sure you want to log out?', [
        { text: 'Cancel', style: 'cancel' },
@@ -43,8 +41,7 @@ export function DrawerMenu() {
    };
 
 
-
-   // FUNCTION: CLEAR ALL LOG DOCUMENTS FROM FIRESTORE
+   // CLEAR ALL LOG DOCUMENTS FROM FIRESTORE
    const handleClearLogs = async () => {
      Alert.alert(
        'Clear Logs',
@@ -74,7 +71,6 @@ export function DrawerMenu() {
    };
 
 
-
    // DATA: COMMUNITY GUIDELINES LIST
    const guidelines = [
      "Be respectful to other users",
@@ -85,11 +81,9 @@ export function DrawerMenu() {
    ];
 
 
-
-   // UI RENDER: DRAWER AND MODAL COMPONENTS
+   // DRAWER AND MODAL COMPONENTS
    return (
      <>
-
 
        {/* UI: BACKDROP OVERLAY WHEN DRAWER IS OPEN */}
        {isDrawerOpen && (
@@ -100,8 +94,7 @@ export function DrawerMenu() {
          />
        )}
 
-
-       {/* UI: ANIMATED DRAWER CONTAINER */}
+       {/* ANIMATED DRAWER CONTAINER */}
        <Animated.View
          pointerEvents={isDrawerOpen ? 'auto' : 'none'}
          style={[
@@ -114,8 +107,7 @@ export function DrawerMenu() {
          ]}
        >
 
-
-         {/* UI: DRAWER HEADER SECTION */}
+         {/* DRAWER HEADER SECTION */}
          <View style={styles.drawerHeader}>
            <Text style={styles.logoMini}>
              <Text style={{ color: '#FFFFFF' }}>Cross</Text>
@@ -126,8 +118,7 @@ export function DrawerMenu() {
            </TouchableOpacity>
          </View>
 
-
-         {/* UI: DRAWER NAVIGATION ITEMS SECTION */}
+         {/* DRAWER NAVIGATION ITEMS SECTION */}
          <ScrollView style={styles.drawerItems}>
            <TouchableOpacity
              style={styles.drawerItem}
@@ -177,8 +168,7 @@ export function DrawerMenu() {
          </ScrollView>
        </Animated.View>
 
-
-       {/* UI: COMMUNITY GUIDELINES MODAL */}
+       {/* COMMUNITY GUIDELINES MODAL */}
        <Modal
          visible={showGuidelines}
          animationType="slide"
@@ -187,8 +177,7 @@ export function DrawerMenu() {
        >
          <SafeAreaView style={styles.modalContainer}>
            
-
-           {/* UI: MODAL HEADER SECTION */}
+           {/* MODAL HEADER SECTION */}
            <View style={styles.modalHeader}>
              <TouchableOpacity onPress={() => setShowGuidelines(false)} style={styles.modalCloseBtn}>
                <Ionicons name="arrow-back" size={scale(24)} color="#222D31" />
@@ -198,17 +187,14 @@ export function DrawerMenu() {
              </Text>
            </View>
 
-
-           {/* UI: MODAL CONTENT SCROLLVIEW SECTION */}
+           {/* MODAL CONTENT SCROLLVIEW SECTION */}
            <ScrollView contentContainerStyle={styles.modalInfoSection}>
              <View style={[styles.infoCard, { padding: scale(20), borderColor: '#F0F0F0', borderWidth: 1 }]}>
                <Text style={[styles.detailLabel, { color: '#222D31', marginBottom: scale(20) }]}>
                  App Rules & Safety
                </Text>
-               
-
-               
-               {/* UI: GUIDELINE RULES MAPPING */}
+                      
+               {/* GUIDELINE RULES MAPPING */}
                {guidelines.map((rule, index) => (
                  <View key={index} style={{ flexDirection: 'row', marginBottom: scale(15), alignItems: 'flex-start' }}>
                    <Ionicons name="checkmark-circle" size={scale(18)} color="#27AE60" style={{ marginTop: 2 }} />
@@ -234,8 +220,7 @@ export function DrawerMenu() {
              </View>
            </ScrollView>
 
-
-           {/* UI: MODAL FOOTER ACTION SECTION */}
+           {/* MODAL FOOTER ACTION SECTION */}
            <View style={[styles.modalFooter, { paddingBottom: Platform.OS === 'ios' ? 30 : 20 }]}>
              <TouchableOpacity
                style={[

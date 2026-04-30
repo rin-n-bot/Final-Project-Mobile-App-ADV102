@@ -2,10 +2,8 @@ import { StyleSheet } from 'react-native';
 import { COLORS, LAYOUT, scale, SPACING } from '../../styles/global'; 
 
 
-
 export const listingStyles = StyleSheet.create({
   
-
 
   // SCREEN LAYOUT CONTAINERS
   container: {
@@ -14,7 +12,6 @@ export const listingStyles = StyleSheet.create({
   },
 
 
-  
   // HEADER STYLING
   header: {
     backgroundColor: COLORS.accent,
@@ -39,7 +36,6 @@ export const listingStyles = StyleSheet.create({
   },
 
 
-  
   // LIST AND CARD DESIGN
   listContainer: {
     padding: LAYOUT.horizontalPadding,
@@ -59,7 +55,6 @@ export const listingStyles = StyleSheet.create({
     shadowColor: 'transparent', 
   },
 
-
   
   // BADGE AND STATUS INDICATORS
   statusBadge: {
@@ -77,7 +72,6 @@ export const listingStyles = StyleSheet.create({
   },
 
 
-  
   // ITEM DETAIL STYLING
   itemImage: {
     width: scale(80),
@@ -105,7 +99,6 @@ export const listingStyles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
 
-
   
   // ACTION BUTTONS STYLING
   actions: {
@@ -117,7 +110,6 @@ export const listingStyles = StyleSheet.create({
   actionBtn: {
     padding: SPACING.sm,
   },
-
 
   
   // EMPTY STATE UI

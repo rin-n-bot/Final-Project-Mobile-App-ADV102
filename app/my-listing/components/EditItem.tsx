@@ -18,17 +18,14 @@ import { db } from '../../../firebase';
 import s from '../../add-listing/styles'; 
 
 
-
 export default function EditItemScreen() {
    
-
 
    // NAVIGATION AND PARAMS HOOKS
    const router = useRouter();
    const { itemId } = useLocalSearchParams();
 
 
-   
    // STATE MANAGEMENT FORM FIELDS
    const [name, setName] = useState('');
    const [price, setPrice] = useState('');
@@ -41,14 +38,12 @@ export default function EditItemScreen() {
    const [loading, setLoading] = useState(true);
 
 
-   
    // STATIC DATA OPTIONS
    const categories = ['Laptop', 'Books', 'Tech', 'Calculators', 'Lab Gear'];
    const statusOptions = ['Available', 'Reserved', 'Rented'];
    const durationOptions = ['Hour', 'Day', 'Week', 'Month'];
 
-
-   
+ 
    // FETCH EXISTING ITEM DATA FROM FIRESTORE
    useEffect(() => {
      const fetchItem = async () => {
@@ -76,8 +71,7 @@ export default function EditItemScreen() {
      fetchItem();
    }, [itemId]);
 
-
-   
+ 
    // PICK IMAGE FROM DEVICE GALLERY
    const pickImage = async () => {
      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -96,7 +90,6 @@ export default function EditItemScreen() {
        setImageUrl(`data:image/jpeg;base64,${result.assets[0].base64}`);
      }
    };
-
 
    
    // HANDLE UPDATE SUBMISSION TO FIRESTORE
@@ -124,8 +117,7 @@ export default function EditItemScreen() {
      }
    };
 
-
-   
+  
    // CONDITIONAL RENDER LOADING STATE
    if (loading) {
      return (
@@ -135,8 +127,7 @@ export default function EditItemScreen() {
      );
    }
 
-
-   
+  
    // MAIN UI RENDER
    return (
      <View style={s.mainWrapper}>

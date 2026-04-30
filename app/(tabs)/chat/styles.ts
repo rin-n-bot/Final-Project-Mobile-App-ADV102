@@ -1,22 +1,41 @@
-// app/(tabs)/chat/styles.ts
 import { StyleSheet, Platform, StatusBar } from 'react-native';
 
+
+// Set color palette constants
+const COLORS = {
+  primary: '#AF0B01',
+  dark: '#222D31',
+  background: '#f5f5f5',
+  surface: '#ffffff',
+  border: '#cfd4da',
+  borderLight: '#F0F0F0',
+  textMain: '#222D31',
+  textSecondary: '#666',
+  avatarBg: '#F9F9F9',
+  shadow: '#000',
+};
+
 export const chatStyles = StyleSheet.create({
+
+
+  // Main screen wrappers
   mainWrapper: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.surface,
   },
   contentArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.background,
   },
+
+
+  // Header and Navigation styles
   redHeader: {
-    backgroundColor: '#AF0B01',
+    backgroundColor: COLORS.primary,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    // GUIDE: Red line (divider) removed — no borderBottom or extra height here
   },
   safeAreaCustom: {
-    backgroundColor: '#AF0B01',
+    backgroundColor: COLORS.primary,
   },
   headerContent: {
     flexDirection: 'row',
@@ -30,104 +49,132 @@ export const chatStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFF',
+    color: COLORS.surface,
     textAlign: 'center',
     width: '65%',
   },
 
+
+  // Interactive elements
   iconButton: { padding: 5 },
 
+
+  // Chat list and row styles
   listContainer: { padding: 15 },
   chatItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
-    marginTop: 0,
     marginBottom: 10,
     borderWidth: 1.5,
-    borderColor: '#cfd4da',
+    borderColor: COLORS.border,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: COLORS.avatarBg,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
   },
   chatInfo: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: '700', color: '#222D31' },
-  lastMsg: { fontSize: 15, color: '#666', marginTop: 2 },
+  userName: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: COLORS.textMain 
+  },
+  lastMsg: { 
+    fontSize: 15, 
+    color: COLORS.textSecondary, 
+    marginTop: 2 
+  },
 
-  messageList: { paddingHorizontal: 15, paddingVertical: 20, marginTop: 0 },
-  bubble: { maxWidth: '80%', padding: 12, borderRadius: 15, marginBottom: 10 },
+
+  // Message thread / Bubble styles
+  messageList: { 
+    paddingHorizontal: 15, 
+    paddingVertical: 20 
+  },
+  bubble: { 
+    maxWidth: '80%', 
+    padding: 12, 
+    borderRadius: 15, 
+    marginBottom: 10 
+  },
   myBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#222D31',
+    backgroundColor: COLORS.dark,
     borderBottomRightRadius: 2,
   },
   theirBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     borderBottomLeftRadius: 2,
     borderWidth: 1.5,
-    borderColor: '#cfd4da',
+    borderColor: COLORS.border,
   },
-  msgText: { fontSize: 15, lineHeight: 22 },
+  msgText: { 
+    fontSize: 15, 
+    lineHeight: 22 
+  },
 
+
+  // Message input bar styles
   inputArea: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 15,
     paddingVertical: 12,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.surface,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    marginBottom: 0,
+    borderTopColor: COLORS.borderLight,
     paddingBottom: 4,
   },
   textInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.surface,
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: Platform.OS === 'ios' ? 10 : 11,
     marginRight: 10,
     fontSize: 15,
-    color: '#222D31',
+    color: COLORS.textMain,
     borderWidth: 1.5,
-    borderColor: '#cfd4da',
+    borderColor: COLORS.border,
     maxHeight: 120,
     minHeight: 45,
     textAlignVertical: 'center',
   },
   sendBtn: {
-    backgroundColor: '#AF0B01',
+    backgroundColor: COLORS.primary,
     width: 46,
     height: 46,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 0,
   },
+
+
+  // Floating Action Button
   fab: {
     position: 'absolute',
     right: 25,
     bottom: 95,
-    backgroundColor: '#AF0B01',
+    backgroundColor: COLORS.primary,
     width: 55,
     height: 55,
     borderRadius: 32.5,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     zIndex: 9999,
   },
+  
 });

@@ -4,7 +4,6 @@ import { db, auth } from '../firebase';
 export const handleRentRequest = async (item: any, user: any) => {
 
 
-
   // Create the Transaction
   const transRef = await addDoc(collection(db, "transactions"), {
     itemId: item.id,
@@ -19,15 +18,12 @@ export const handleRentRequest = async (item: any, user: any) => {
   });
 
 
-
-
   // Update Item Status to Pending
   const itemRef = doc(db, "items", item.id);
   await updateDoc(itemRef, {
     status: "Pending",
     currentTransactionId: transRef.id
   });
-
 
 
   // Log
@@ -55,10 +51,8 @@ export const updateTransactionStatus = async (
   const transRef = doc(db, "transactions", transactionId);
 
 
-
   // Update transaction status
   await updateDoc(transRef, { status: newStatus });
-
 
 
   // Update item ONLY if it still exists (guard against deleted items)
@@ -79,7 +73,6 @@ export const updateTransactionStatus = async (
   }
 
 
-
   // Determine role accurately
   const role =
     newStatus === "cancelled"
@@ -87,7 +80,6 @@ export const updateTransactionStatus = async (
       : newStatus === "completed"
       ? "owner"
       : "owner";
-
 
 
   // Log
@@ -102,14 +94,12 @@ export const updateTransactionStatus = async (
 };
 
 
-
 // Called when owner deletes an item
 export const handleItemDelete = async (itemId: string, itemName: string) => {
   const user = auth.currentUser;
   if (!user) return;
 
   const batch = writeBatch(db);
-
 
 
   // Find all active transactions for this item
@@ -121,7 +111,6 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
   const snapshot = await getDocs(q);
 
 
-
   // Mark each transaction as item deleted (do NOT change status so they stay in lending/borrowing tabs)
   snapshot.forEach((txDoc) => {
     batch.update(txDoc.ref, {
@@ -131,16 +120,13 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
   });
 
 
-
   // Delete the item doc
   const itemRef = doc(db, "items", itemId);
   batch.delete(itemRef);
 
 
-
   // Commit atomically
   await batch.commit();
-
 
 
   // Log
@@ -156,12 +142,10 @@ export const handleItemDelete = async (itemId: string, itemName: string) => {
 };
 
 
-
 // Called when a user dismisses/deletes a transaction card marked as itemDeleted
 export const deleteTransactionRecord = async (transactionId: string, itemId: string, itemName: string) => {
   const user = auth.currentUser;
   if (!user) return;
-
 
 
   // Log BEFORE deleting so the record exists
@@ -173,7 +157,6 @@ export const deleteTransactionRecord = async (transactionId: string, itemId: str
     itemName,
     createdAt: serverTimestamp(),
   });
-
 
   
   // Delete the transaction document

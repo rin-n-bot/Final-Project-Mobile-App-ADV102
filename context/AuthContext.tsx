@@ -3,8 +3,7 @@ import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '../firebase';
 
 
-
-// INTERFACE: USER DATA STRUCTURE
+// USER DATA STRUCTURE
 interface User {
   uid: string;
   email: string | null;
@@ -12,8 +11,7 @@ interface User {
 }
 
 
-
-// INTERFACE: AUTHENTICATION CONTEXT VALUE TYPES
+// AUTHENTICATION CONTEXT VALUE TYPES
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -21,19 +19,17 @@ interface AuthContextType {
 }
 
 
-
 // CONTEXT INITIALIZATION
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
-// COMPONENT: AUTHENTICATION PROVIDER
+// AUTHENTICATION PROVIDER
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
 
-
-  // HOOK: FIRESTORE AUTH STATE LISTENER
+  // FIRESTORE AUTH STATE LISTENER
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser && firebaseUser.emailVerified) {
@@ -52,8 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
-
-  // FUNCTION: USER LOGOUT AND SESSION CLEARING
+  // USER LOGOUT AND SESSION CLEARING
   const logout = async () => {
     try {
       await firebaseSignOut(auth);
@@ -65,8 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
 
-
-  // UI RENDER: CONTEXT PROVIDER WRAPPER
+  // CONTEXT PROVIDER WRAPPER
   return (
     <AuthContext.Provider value={{ user, loading, logout }}>
       {children}
@@ -75,8 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 
-
-// HOOK: CUSTOM AUTH CONTEXT CONSUMER
+// CUSTOM AUTH CONTEXT CONSUMER
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

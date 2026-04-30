@@ -4,16 +4,19 @@ import { Text, TouchableOpacity, View, StyleSheet, Platform, Dimensions, Animate
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
+
 const { width } = Dimensions.get('window');
 const scale = (size: number) => (width / 375) * size;
+
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // 👇 ANIMATION FOR CONTENT SWITCHING
-        animation: 'fade', 
+
+        // Animation for content switching
+        animation: 'fade',
       }}
       tabBar={(props) => <GlassCapsuleNav {...props} />}
     >
@@ -26,8 +29,11 @@ export default function TabsLayout() {
   );
 }
 
-// Sub-component to handle independent animation state for icons
+
+// Tab Item Component (Icon + Label + Animation)
 function TabItem({ route, isFocused, onPress }: any) {
+
+  // State (animation)
   const scaleAnim = useRef(new Animated.Value(isFocused ? 1 : 0.9)).current;
 
   useEffect(() => {
@@ -38,6 +44,9 @@ function TabItem({ route, isFocused, onPress }: any) {
     }).start();
   }, [isFocused]);
 
+
+  
+  // Helpers
   const getRouteData = (name: string) => {
     if (name.includes('home')) return { icon: 'home', label: 'Home' };
     if (name.includes('chat')) return { icon: 'chatbubbles', label: 'Chats' };
@@ -46,6 +55,7 @@ function TabItem({ route, isFocused, onPress }: any) {
   };
 
   const { icon, label } = getRouteData(route.name);
+
 
   return (
     <TouchableOpacity
@@ -57,14 +67,14 @@ function TabItem({ route, isFocused, onPress }: any) {
         <Ionicons
           name={(isFocused ? icon : `${icon}-outline`) as any}
           size={scale(22)}
-          color={isFocused ? '#AF0B01' : '#FFFFFF'}
+          color={isFocused ? '#AF0B01' : '#1F2937'} // ✅ CHANGED (dark gray instead of white)
         />
       </Animated.View>
       <Text
         numberOfLines={1}
         style={[
           styles.navLabel,
-          { color: isFocused ? '#AF0B01' : '#FFFFFF' },
+          { color: isFocused ? '#AF0B01' : '#1F2937' }, // ✅ CHANGED
         ]}
       >
         {label}
@@ -73,6 +83,9 @@ function TabItem({ route, isFocused, onPress }: any) {
   );
 }
 
+
+
+// Custom glass navbar
 function GlassCapsuleNav({ state, navigation }: any) {
   const visibleRoutes = state.routes.filter(
     (route: any) => route.name !== 'add' && route.name !== 'profile/index'
@@ -120,7 +133,12 @@ function GlassCapsuleNav({ state, navigation }: any) {
   );
 }
 
+
+// Styles
 const styles = StyleSheet.create({
+
+
+  // Main wrapper
   container: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? scale(30) : scale(20),
@@ -130,24 +148,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: scale(16),
   },
+
+
+  // Glass nav bar
   glassCapsule: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'rgba(38, 53, 58, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
     height: scale(65),
     borderRadius: scale(32),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    elevation: 4,
+    borderColor: 'rgba(0, 0, 0, 0.09)', 
+    elevation: 6,
     paddingRight: scale(12),
+
+
+    // Nav bar shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
   },
+
+
   navItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+
   navLabel: {
     fontSize: scale(10),
     fontWeight: '800',
@@ -155,10 +187,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+
+
   addWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+
+  // Add button
   inlineAddBtn: {
     width: scale(60),
     height: scale(60),
@@ -173,4 +210,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 6,
   },
+
 });

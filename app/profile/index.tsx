@@ -28,10 +28,8 @@ import { auth, db } from '../../firebase';
 import { profileStyles as styles, scale } from './styles';
 
 
-
 // MAIN PROFILE SCREEN COMPONENT
 export default function ProfileScreen() {
-
 
 
   // NAVIGATION AND ROUTING HOOKS
@@ -40,11 +38,9 @@ export default function ProfileScreen() {
   const currentUser = auth.currentUser;
   
 
-  
   // DETERMINE PROFILE OWNERSHIP AND TARGET USER ID
   const isViewingOthers = !!viewUserId && viewUserId !== currentUser?.uid;
   const targetId = (isViewingOthers ? viewUserId : currentUser?.uid) as string;
-
 
 
   // PROFILE DATA AND UI LOADING STATES
@@ -59,11 +55,9 @@ export default function ProfileScreen() {
   const [isDirty, setIsDirty] = useState(false);
 
 
-
   // PERSISTENT STORAGE FOR ORIGINAL DATA COMPARISON
   const originalBio = useRef('');
   const originalPic = useRef('');
-
 
 
   // DATA INITIALIZATION ON COMPONENT MOUNT OR TARGET CHANGE
@@ -80,7 +74,6 @@ export default function ProfileScreen() {
     fetchProfile();
     fetchStats();
   }, [targetId]);
-
 
 
   // FETCH USER PROFILE AND ACCOUNT DETAILS FROM FIRESTORE
@@ -113,14 +106,12 @@ export default function ProfileScreen() {
   };
 
 
-
   // REAL-TIME LISTENERS FOR USER STATISTICS
   const fetchStats = () => {
     if (!targetId) return;
     onSnapshot(query(collection(db, 'items'), where('ownerId', '==', targetId)), (snap) => setListingsCount(snap.size));
     onSnapshot(query(collection(db, 'transactions'), where('renterId', '==', targetId)), (snap) => setTransactionsCount(snap.size));
   };
-
 
 
   // PROFILE IMAGE SELECTION FROM LIBRARY
@@ -146,13 +137,11 @@ export default function ProfileScreen() {
   };
 
 
-
   // UPDATE BIO STATE AND CHECK FOR UNSAVED CHANGES
   const handleBioChange = (text: string) => {
     setBio(text);
     setIsDirty(text !== originalBio.current || profilePicUrl !== originalPic.current);
   };
-
 
 
   // SAVE UPDATED PROFILE DATA TO FIRESTORE
@@ -175,7 +164,6 @@ export default function ProfileScreen() {
   };
 
 
-
   // GENERATE HEADER TITLE BASED ON VIEWING CONTEXT
   const getHeaderTitle = () => {
     if (!isViewingOthers) return "Profile";
@@ -183,10 +171,8 @@ export default function ProfileScreen() {
   };
 
 
-
   // GENERATE INITIALS FOR PLACEHOLDER AVATAR
   const getInitials = () => email?.charAt(0).toUpperCase() ?? '?';
-
 
 
   // RENDER LOADING STATE
@@ -202,13 +188,11 @@ export default function ProfileScreen() {
   }
 
 
-
   // RENDER MAIN PROFILE CONTENT
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-
       {/* TOP NAVIGATION BAR */}
       <View style={styles.topNav}>
         <TouchableOpacity onPress={() => router.back()} style={{ padding: scale(5) }}>
@@ -226,7 +210,6 @@ export default function ProfileScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: scale(40) }}>
         
-
         {/* AVATAR AND USER IDENTITY SECTION */}
         <View style={styles.avatarSection}>
           <TouchableOpacity
@@ -252,7 +235,6 @@ export default function ProfileScreen() {
           {memberSince ? <Text style={styles.memberSince}>Member since {memberSince}</Text> : null}
         </View>
 
-
         {/* STATISTICS SECTION */}
         <View style={styles.section}>
           <View style={styles.statsRow}>
@@ -266,7 +248,6 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-
 
         {/* ACCOUNT INFORMATION SECTION */}
         <View style={styles.section}>
@@ -290,7 +271,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-
         {/* BIO / ABOUT ME SECTION */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Bio</Text>
@@ -313,7 +293,6 @@ export default function ProfileScreen() {
           </View>
           {!isViewingOthers && <Text style={styles.charCount}>{bio.length}/160</Text>}
         </View>
-
 
         {/* FLOATING SAVE ACTION BUTTON */}
         {isDirty && !isViewingOthers && (

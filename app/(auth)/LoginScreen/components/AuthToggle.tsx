@@ -8,25 +8,34 @@ interface AuthToggleProps {
 }
 
 
-export const AuthToggle = ({ isLogin, setIsLogin }: AuthToggleProps) => (
+// Component for toggling between Login and Register states
+export const AuthToggle = ({ isLogin, setIsLogin }: AuthToggleProps) => {
+  
 
-  <View style={styles.selectionWrapper}>
-    <TouchableOpacity 
-      style={[styles.selectionBtn, isLogin && styles.activeBtn]} 
-      onPress={() => setIsLogin(true)}
-    >
+  //  Helper to determine active styles for buttons and text
+  const getToggleStyles = (activeCondition: boolean) => ({
+    button: [styles.selectionBtn, activeCondition && styles.activeBtn],
+    text: [styles.selectionText, activeCondition && styles.activeText],
+  });
 
-      <Text style={[styles.selectionText, isLogin && styles.activeText]}>Login</Text>
+  return (
+    <View style={styles.selectionWrapper}>
 
-    </TouchableOpacity>
-    
-    <TouchableOpacity 
-      style={[styles.selectionBtn, !isLogin && styles.activeBtn]} 
-      onPress={() => setIsLogin(false)}
-    >
+      {/* LOGIN TAB */}
+      <TouchableOpacity 
+        style={getToggleStyles(isLogin).button} 
+        onPress={() => setIsLogin(true)}
+      >
+        <Text style={getToggleStyles(isLogin).text}>Login</Text>
+      </TouchableOpacity>
       
-      <Text style={[styles.selectionText, !isLogin && styles.activeText]}>Register</Text>
-    </TouchableOpacity>
-
-  </View>
-);
+      {/* REGISTER TAB */}
+      <TouchableOpacity 
+        style={getToggleStyles(!isLogin).button} 
+        onPress={() => setIsLogin(false)}
+      >
+        <Text style={getToggleStyles(!isLogin).text}>Register</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};

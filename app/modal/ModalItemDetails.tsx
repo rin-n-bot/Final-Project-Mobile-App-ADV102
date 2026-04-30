@@ -28,14 +28,14 @@ import { auth, db } from '../../firebase';
 import { handleRentRequest } from '../../services/transactionService';
 
 
-// INTERFACE FOR COMPONENT PROPS
+// Interface for component props
 interface ModalItemDetailsProps {
   selectedItem: any;
   setSelectedItem: (item: any) => void;
 }
 
 
-// UTILITY FUNCTION FOR DATE FORMATTING
+// Date Formatting
 const formatPostedDate = (raw: any): string => {
   let date: Date | null = null;
   if (!raw) return 'Recently';
@@ -55,22 +55,22 @@ const formatPostedDate = (raw: any): string => {
 };
 
 
-// MAIN COMPONENT MODULE
+// Main component
 export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDetailsProps) => {
 
 
-  // NAVIGATION AND AUTHENTICATION HOOKS
+  // Navigation and Authentication hooks
   const router = useRouter();
   const user = auth.currentUser;
   const isOwner = user?.uid === selectedItem?.ownerId;
 
 
-  // COMPONENT STATE MANAGEMENT
+  // State
   const [ownerPhoto, setOwnerPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
 
-  // EFFECT TO FETCH OWNER PROFILE IMAGE
+  // Fetch owner profile image
   useEffect(() => {
     if (!selectedItem?.ownerId) return;
     setOwnerPhoto(null);
@@ -80,7 +80,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
   }, [selectedItem?.ownerId]);
 
 
-  // LOGIC TO DETERMINE BUTTON ACTION BASED ON OWNERSHIP
+  // Logic to determine button action based on ownership
   const handleActionTrigger = () => {
     if (!user) {
       Alert.alert('Authentication', 'Please log in to continue.');
@@ -105,7 +105,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
   };
 
 
-  // FIREBASE LOGIC FOR PROCESSING RENTAL REQUESTS
+  // Firebase processing rental requests logic
   const processRentalRequest = async () => {
     setLoading(true);
     try {
@@ -134,11 +134,10 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
       const q = query(chatsRef, where('participants', '==', participants));
       const chatQuerySnapshot = await getDocs(q);
 
-      // [GHOST-FIX-1] Determine chatId without creating the document yet
       let chatId: string;
       let isNewChat = false;
       if (chatQuerySnapshot.empty) {
-        // Generate ID but don't create doc yet - prevents ghost docs if message creation fails
+
         chatId = doc(collection(db, 'chats')).id;
         isNewChat = true;
       } else {
@@ -153,7 +152,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         `Date/Time: ${timestamp}\n\n` +
         `Check status in Transactions.`;
 
-      // [GHOST-FIX-1] Add message FIRST (this auto-creates parent doc if new)
       const messageRef = await addDoc(collection(db, 'chats', chatId, 'messages'), {
         text: requestMessage,
         senderId: user!.uid,
@@ -162,23 +160,20 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         isSystem: true,
       });
 
-      // [GHOST-FIX-1] Only proceed if message was created successfully
       if (!messageRef.id) {
         throw new Error('Failed to create message - chat not initialized');
       }
 
-      // [GHOST-FIX-1] Now set/update chat metadata (for new chats, this creates the doc if it doesn't exist)
-      // Using setDoc with merge:true ensures document is created AND existing fields are preserved
       await setDoc(
         doc(db, 'chats', chatId),
         {
-          participants, // [GHOST-FIX-1] Essential field - required for chat queries
+          participants, 
           lastMessage: `Requested: ${selectedItem.name}`,
           lastSenderEmail: user!.email,
           updatedAt: serverTimestamp(),
-          ...(isNewChat && { readBy: [] }), // [GHOST-FIX-1] Initialize for new chats only
+          ...(isNewChat && { readBy: [] }), 
         },
-        { merge: true } // [GHOST-FIX-1] Merge with existing fields instead of overwriting
+        { merge: true } 
       );
 
       Alert.alert('Success', 'Rental request sent to owner!');
@@ -197,7 +192,7 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
   };
 
 
-  // MAIN UI RENDER
+  // Main render
   return (
     <View>
 
@@ -209,7 +204,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
         onRequestClose={() => setSelectedItem(null)}
       >
         <SafeAreaView style={styles.modalContainer}>
-
 
           {/* UI HEADER SECTION */}
           <View style={styles.modalHeader}>
@@ -224,7 +218,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
             <View style={{ width: scale(24) }} />
           </View>
 
-
           {/* UI SCROLLABLE CONTENT SECTION */}
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
             
@@ -235,7 +228,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
             />
 
             <View style={styles.modalInfoSection}>
-
 
               {/* CATEGORY AND STATUS BADGE DISPLAY */}
               <View style={styles.modalRow}>
@@ -267,7 +259,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
                   </Text>
                 </View>
               </View>
-
 
               {/* TITLE AND PRICING DISPLAY */}
               <View style={{ 
@@ -303,7 +294,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
               </View>
 
               <View style={[styles.divider, { marginBottom: scale(20) }]} />
-
 
               {/* DATA CARD FOR OWNER INFO, DESCRIPTION, AND LOCATION */}
               <View style={{ backgroundColor: '#FFFFFF', borderRadius: scale(12), overflow: 'hidden' }}>
@@ -389,7 +379,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
 
               </View>
 
-
               {/* LEGAL AND PLATFORM DISCLAIMER */}
               <View style={{
                 marginTop: scale(15),
@@ -429,7 +418,6 @@ export const ModalItemDetails = ({ selectedItem, setSelectedItem }: ModalItemDet
 
             </View>
           </ScrollView>
-
 
           {/* UI FOOTER SECTION WITH ACTION BUTTON */}
           <View style={[styles.modalFooter, { paddingBottom: Platform.OS === 'ios' ? scale(30) : scale(15) }]}>

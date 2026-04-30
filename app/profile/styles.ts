@@ -1,16 +1,13 @@
 import { Dimensions, Platform, StatusBar, StyleSheet } from 'react-native';
 
 
-
 // UTILITY: SCREEN DIMENSIONS AND SCALING CALCULATION
 const { width } = Dimensions.get('window');
 export const scale = (size: number) => (width / 375) * size;
 
 
-
 // STYLESHEET: PROFILE SCREEN STYLING
 export const profileStyles = StyleSheet.create({
-
 
 
   // CORE CONTAINER STYLES
@@ -19,7 +16,6 @@ export const profileStyles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-
 
 
   // TOP NAVIGATION HEADER STYLES
@@ -42,7 +38,6 @@ export const profileStyles = StyleSheet.create({
     fontWeight: '800',
     color: '#AF0B01',
   },
-
 
 
   // PROFILE AVATAR SECTION STYLES
@@ -90,7 +85,6 @@ export const profileStyles = StyleSheet.create({
   },
 
 
-
   // USER IDENTITY TEXT STYLES
   userName: {
     fontSize: scale(18),
@@ -112,7 +106,6 @@ export const profileStyles = StyleSheet.create({
     color: '#9CA3AF',
     marginTop: scale(4),
   },
-
 
 
   // STATISTICS COMPONENT STYLES
@@ -144,7 +137,6 @@ export const profileStyles = StyleSheet.create({
   },
 
 
-
   // SECTION WRAPPER AND LABEL STYLES
   section: {
     paddingHorizontal: scale(20),
@@ -157,7 +149,6 @@ export const profileStyles = StyleSheet.create({
     color: '#222D31',
     marginBottom: scale(10),
   },
-
 
 
   // DATA LIST CARD AND ROW STYLES
@@ -199,7 +190,6 @@ export const profileStyles = StyleSheet.create({
   },
 
 
-
   // FORM INPUT AND BIO STYLES
   bioInput: {
     fontSize: scale(16),
@@ -215,7 +205,6 @@ export const profileStyles = StyleSheet.create({
     marginTop: scale(6),
     textAlign: 'right',
   },
-
 
 
   // PRIMARY ACTION BUTTON STYLES

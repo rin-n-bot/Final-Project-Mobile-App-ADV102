@@ -2,11 +2,26 @@ import { StyleSheet, Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
+
+// Shared Styles 
+const SHARED_INPUT = {
+  backgroundColor: '#ffffff',
+  borderRadius: 15,
+  height: 60,
+  paddingHorizontal: 20,
+  borderWidth: 1.5,
+  borderColor: '#ffffff',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.08,
+  shadowRadius: 2,
+  elevation: 1,
+};
+
 export const styles = StyleSheet.create({
 
 
-  
-  // MAIN LAYOUT CONTAINERS
+  // Root container and inner wrapper for the screen
   container: { 
     flex: 1, 
     backgroundColor: '#f5f5f5',
@@ -19,8 +34,7 @@ export const styles = StyleSheet.create({
   },
 
 
-
-  // HEADER AND TYPOGRAPHY
+  // Branding and screen heading styles
   header: { 
     alignItems: 'flex-start', 
     marginBottom: 60
@@ -48,8 +62,7 @@ export const styles = StyleSheet.create({
   },
 
 
-
-  // AUTH TOGGLE TABS (LOGIN/SIGNUP SELECTION)
+  // Styles for the Login/Register switcher buttons
   selectionWrapper: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
@@ -83,8 +96,7 @@ export const styles = StyleSheet.create({
   },
 
 
-
-  // FORM AND INPUT FIELDS
+  // Logic for field wrappers, floating labels, and text inputs
   form: {
     width: '100%'
   },
@@ -106,39 +118,18 @@ export const styles = StyleSheet.create({
     color: '#222D31',
   },
   input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-    borderRadius: 15,
-    height: 60,
-    paddingHorizontal: 20,
+    ...SHARED_INPUT,
     fontSize: 16,
     color: '#1D3557',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
   },
   passwordInputContainer: { 
-    backgroundColor: '#ffffff',
+    ...SHARED_INPUT,
     flexDirection: 'row', 
     alignItems: 'center', 
-    borderWidth: 1.5, 
-    borderColor: '#ffffff', 
-    borderRadius: 15, 
-    height: 60, 
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 1,
   },
 
 
-
-  // PRIMARY ACTION BUTTONS
+  // Main CTA (Sign In / Create Account) styling
   mainActionBtn: {
     backgroundColor: '#AF0B01',
     height: 60,
@@ -159,9 +150,8 @@ export const styles = StyleSheet.create({
     letterSpacing: 1
   },
 
-
-
-  // SECONDARY LINKS AND FOOTER
+  
+  // Styles for "Forgot Password" and the branding footer logo
   forgotBtn: {
     marginTop: 20,
     alignItems: 'center'
